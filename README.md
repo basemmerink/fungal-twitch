@@ -17,6 +17,7 @@ Fungal Twitch lets Twitch chat pick the materials for a fungal shift
 - Run the batch file RUN_THIS_THE_FIRST_TIME.bat - This will setup the nodejs environment
 - Run server.bat - You need to run this each time when you want to play this mod
 - Start a new run in Noita with the Fungal Twitch mod enabled (make sure to grant it extra privileges, this is needed for websockets to work)
+- If you don't want to see the shifts that are happening ingame, you can edit init.lua and change the first 2 lines to your liking
 
 ## Credits
 
