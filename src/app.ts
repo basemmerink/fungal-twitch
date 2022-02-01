@@ -48,6 +48,9 @@ twitchClient.on('message', (channel: string, userState: ChatUserstate, message: 
     }
     const rewardId = userState['custom-reward-id'];
     if (!rewardId) {
+        if (message === '!materials') {
+            twitchClient.say(TWITCH_CHANNEL, 'https://pastebin.com/eAKLkG8u');
+        }
         return;
     }
     if (rewardId === process.env.REWARD_FROM_ID) {
