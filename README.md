@@ -14,7 +14,7 @@ Fungal Twitch lets Twitch chat pick the materials for a fungal shift
     - First you should make 2 channel point redemptions, a template for those can be seen in the image below
     - To get the IDs, you can run the server and redeem the channel point reward (make sure that user must enter a message). After redeeming the channel point reward, the server will print the reward ID in the console
   - LOG_SHIFT_RESULT_TO_TWITCH - Do you want the bot account to send a message in twitch chat if a shift succeeds (true/false)
-- Run the batch file RUN_THIS_THE_FIRST_TIME.bat - This will setup the nodejs environment
+- Run the batch file RUN_THIS_THE_FIRST_TIME.bat - This will setup the nodejs environment, you only need to do this once
 - Run server.bat - You need to run this each time when you want to play this mod
 - Start a new run in Noita with the Fungal Twitch mod enabled (make sure to grant it extra privileges, this is needed for websockets to work)
 - If you don't want to a message with information on the shifts, you can edit init.lua and change the first 2 lines to your liking
