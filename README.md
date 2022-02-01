@@ -11,8 +11,8 @@ Fungal Twitch lets Twitch chat pick the materials for a fungal shift
   - TWITCH_CHANNEL - The channel where you will livestream this mod
   - REWARD_FROM_ID - The ID of the channel point redemption for the "from" material
   - REWARD_TO_ID - The ID of the channel point redemption for the "to" material
-    - If you don't know these IDs, you can run the server and redeem the channel point reward (make sure that user must enter a message)  
-    After redeeming the channel point reward, the server will print the reward ID in the console
+    - First you should make 2 channel point redemptions, a template for those can be seen in the image below
+    - To get the IDs, you can run the server and redeem the channel point reward (make sure that user must enter a message). After redeeming the channel point reward, the server will print the reward ID in the console
   - LOG_SHIFT_RESULT_TO_TWITCH - Do you want the bot account to send a message in twitch chat if a shift succeeds (true/false)
 - Run the batch file RUN_THIS_THE_FIRST_TIME.bat - This will setup the nodejs environment
 - Run server.bat - You need to run this each time when you want to play this mod
@@ -25,3 +25,9 @@ https://twitch.tv/baasbase
 https://twitter.com/baasbase  
 https://www.youtube.com/channel/UCd5RjtL4EJwoeLJWiofGG3Q  
 https://ko-fi.com/baasbase
+
+## Twitch Custom Reward
+
+Make one for the "from" material, and another one for "to". I used 1 channel point as price and no cooldown, but you can obviously edit those settings as you like
+
+![Twitch Custom Reward](https://i.imgur.com/vXgmVTD.png)
