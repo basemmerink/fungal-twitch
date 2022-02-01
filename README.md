@@ -20,6 +20,7 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 
 - Run server.bat - You need to run this each time when you want to play this mod
 - Start a new run in Noita with the Fungal Twitch mod enabled (make sure to grant it extra privileges, this is needed for websockets to work)
+- If a message appears saying "Connection status: Open" then you know it works (the server will print a message too)
 
 Chat can redeem channel point rewards with either a "from" material or a "to" material.  
 If someone sets a "from" or "to" again, before the other one is set, it will override the old one  
