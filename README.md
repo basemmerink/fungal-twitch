@@ -22,6 +22,7 @@ Fungal Twitch lets Twitch chat pick the materials for a fungal shift
 - Start a new run in Noita with the Fungal Twitch mod enabled (make sure to grant it extra privileges, this is needed for websockets to work)
 
 Chat can redeem channel point rewards with either a "from" material or a "to" material.  
+If someone sets a "from" or "to" again, before the other one is set, it will override the old one  
 As soon as both materials are set, the fungal shift will happen.
 
 A message will be sent ingame to explain the shift that just happened.  
