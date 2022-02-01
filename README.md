@@ -1,6 +1,6 @@
 # Fungal Twitch
 
-Fungal Twitch lets Twitch chat pick the materials for a fungal shift
+Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fungal shift
 
 ## Installation
 
