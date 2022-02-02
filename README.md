@@ -27,7 +27,7 @@ If someone sets a "from" or "to" again, before the other one is set, it will ove
 As soon as both materials are set, the fungal shift will happen.
 
 A message will be sent ingame to explain the shift that just happened.  
-If you do not wish to see this message you can edit init.lua and change the first 2 lines to your liking
+If you do not wish to see this message you can change it in the mod settings ingame
 
 ## Credits
 
