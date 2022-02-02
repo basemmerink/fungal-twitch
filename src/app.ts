@@ -19,20 +19,59 @@ const twitchClient = Client({
     }
 });
 
-const illegalMaterials = [
-    'ice_glass', 'wood_player_b2', 'wood', 'wax_b2', 'fuse', 'wood_loose', 'rock_loose', 'ice_ceiling',
-    'brick', 'concrete_collapsed', 'tnt', 'tnt_static', 'meteorite', 'sulphur_box2d', 'meteorite_test', 'meteorite_green',
-    'steel', 'steel_rust', 'metal_rust_rust', 'metal_rust_barrel_rust', 'plastic', 'aluminium', 'rock_static_box2d',
-    'rock_box2d', 'crystal', 'magic_crystal', 'crystal_magic', 'aluminium_oxide', 'meat', 'meat_slime',
-    'physics_throw_material_part2', 'ice_melting_perf_killer', 'ice_b2', 'glass_liquidcave', 'neon_tube_purple',
-    'snow_b2', 'tube_physics', 'fuse_bright', 'fuse_tnt', 'fuse_holy', 'fungus_loose', 'fungus_loose_green',
-    'fungus_loose_trippy', 'cloth_box2d', 'aluminium_robot', 'metal_prop', 'metal_prop_low_restitution',
-    'metal_prop_loose', 'metal', 'metal_hard', 'rock_box2d', 'templebrick_box2d_edgetiles', 'rock_box2d_hard',
-    'poop_box2d_hard', 'rock_box2d_nohit', 'rock_box2d_nohit_hard', 'item_box2d', 'item_box2d_glass', 'item_box2d_meat',
-    'gem_box2d', 'potion_glass_box2d', 'glass_box2d', 'gem_box2d_yellow_sun', 'gem_box2d_yellow_sun_gravity',
-    'gem_box2d_darksun', 'gold_box2d', 'bloodgold_box2d', 'metal_nohit', 'metal_chain_nohit', 'metal_wire_nohit',
-    'metal_rust', 'metal_rust_barrel', 'bone_box2d', 'gold_b2'
-]; // these materials have box2d (physics) properties and cause massive lag (or even crash noita)
+const validMaterials = [
+    "air","fire","spark","spark_electric","flame","sand_static","nest_static","bluefungi_static","rock_static",
+    "water_static","endslime_static","slime_static","spore_pod_stalk","lavarock_static","meteorite_static",
+    "templerock_static","steel_static","rock_static_glow","snow_static","ice_static","ice_acid_static",
+    "ice_cold_static","ice_radioactive_static","ice_poison_static","ice_meteor_static","tubematerial",
+    "glass_static","waterrock","ice_glass_b2","glass_brittle","snowrock_static","concrete_static","wood_static",
+    "cheese_static","smoke","cloud","cloud_lighter","smoke_explosion","steam","acid_gas","acid_gas_static",
+    "smoke_static","blood_cold_vapour","sand_herb_vapour","radioactive_gas","radioactive_gas_static",
+    "magic_gas_hp_regeneration","rainbow_gas","water","water_temp","water_ice","water_swamp","oil","alcohol","sima",
+    "juhannussima","alcohol_gas","magic_liquid","material_confusion","material_darkness","material_rainbow",
+    "magic_liquid_movement_faster","magic_liquid_faster_levitation","magic_liquid_faster_levitation_and_movement",
+    "magic_liquid_worm_attractor","magic_liquid_protection_all","magic_liquid_mana_regeneration",
+    "magic_liquid_unstable_teleportation","magic_liquid_teleportation","magic_liquid_hp_regeneration",
+    "magic_liquid_hp_regeneration_unstable","magic_liquid_polymorph","magic_liquid_random_polymorph",
+    "magic_liquid_unstable_polymorph","magic_liquid_berserk","magic_liquid_charm","magic_liquid_invisibility",
+    "cloud_radioactive","cloud_blood","cloud_slime","swamp","mud","blood","blood_fading","blood_fungi","blood_worm",
+    "porridge","blood_cold","radioactive_liquid","radioactive_liquid_fading","plasma_fading","gold_molten","wax_molten",
+    "silver_molten","copper_molten","brass_molten","glass_molten","glass_broken_molten","steel_molten","creepy_liquid",
+    "cement","concrete_sand","sand","bone","soil","sandstone","fungisoil","honey","glue","slime","slush","vomit",
+    "explosion_dirt","vine","root","snow","snow_sticky","rotten_meat","meat_slime_sand","rotten_meat_radioactive","ice",
+    "sand_herb","wax","gold","silver","copper","brass","diamond","coal","sulphur","salt","sodium_unstable","gunpowder",
+    "gunpowder_explosive","gunpowder_tnt","gunpowder_unstable","gunpowder_unstable_big","monster_powder_test",
+    "rat_powder","fungus_powder","orb_powder","gunpowder_unstable_boss_limbs","plastic_red","plastic_red_molten",
+    "grass","grass_ice","grass_dry","fungi","spore","moss","plant_material","plant_material_red",
+    "ceiling_plant_material","mushroom_seed","plant_seed","mushroom","mushroom_giant_red","mushroom_giant_blue",
+    "glowshroom","bush_seed","acid","lava","wood_player","trailer_text","urine","poo","rocket_particles","glass",
+    "glass_broken","blood_thick","fungal_shift_particle_fx","fire_blue","spark_green","spark_green_bright","spark_blue",
+    "spark_blue_dark","spark_red","spark_red_bright","spark_white","spark_white_bright","spark_yellow","spark_purple",
+    "spark_purple_bright","spark_player","spark_teal","sand_static_rainforest","sand_static_rainforest_dark",
+    "bone_static","rust_static","sand_static_bright","sand_static_red","rock_static_intro","rock_static_trip_secret",
+    "rock_static_trip_secret2","rock_static_cursed","rock_static_purple","rock_hard","rock_static_fungal","wood_tree",
+    "rock_static_noedge","rock_hard_border","rock_magic_gate","rock_magic_bottom","rock_eroding","rock_vault",
+    "coal_static","rock_static_grey","rock_static_radioactive","rock_static_cursed_green","rock_static_poison",
+    "skullrock","rock_static_wet","templebrick_static","templebrick_static_broken","templebrick_static_soft",
+    "templebrick_noedge_static","templerock_soft","templebrick_thick_static","templebrick_thick_static_noedge",
+    "templeslab_static","templeslab_crumbling_static","templebrickdark_static","wizardstone",
+    "templebrick_golden_static","templebrick_diamond_static","templebrick_static_ruined","glowstone","glowstone_altar",
+    "glowstone_altar_hdr","glowstone_potion","templebrick_red","templebrick_moss_static","the_end","steelmoss_static",
+    "steel_rusted_no_holes","steel_grey_static","steelfrost_static","steelmoss_slanted","steelsmoke_static",
+    "steelpipe_static","steel_static_strong","steel_static_unmeltable","rock_static_intro_breakable","ice_blood_static",
+    "ice_slime_static","wood_static_wet","root_growth","wood_burns_forever","creepy_liquid_emitter","gold_static",
+    "gold_static_radioactive","gold_static_dark","wood_static_vertical","wood_static_gas","corruption_static",
+    "smoke_magic","steam_trailer","poison_gas","fungal_gas","poo_gas","water_fading","water_salt","void_liquid",
+    "liquid_fire","liquid_fire_weak","midas_precursor","midas","blood_fading_slow","poison","cursed_liquid",
+    "radioactive_liquid_yellow","plasma_fading_bright","plasma_fading_green","plasma_fading_pink","steel_static_molten",
+    "steelmoss_slanted_molten","steelmoss_static_molten","steelsmoke_static_molten","metal_sand_molten","metal_molten",
+    "metal_rust_molten","metal_nohit_molten","aluminium_molten","aluminium_robot_molten","metal_prop_molten",
+    "steel_rust_molten","aluminium_oxide_molten","sand_blue","sand_surface","lavasand","sand_petrify","soil_lush",
+    "soil_lush_dark","soil_dead","soil_dark","sandstone_surface","slime_green","slime_yellow","pea_soup","endslime",
+    "endslime_blood","gold_radioactive","steel_sand","metal_sand","sodium","purifying_powder","burning_powder",
+    "fungus_powder_bad","shock_powder","plastic_molten","plastic_prop_molten","fungi_green","grass_dark",
+    "fungi_creeping","fungi_creeping_secret","peat","moss_rust"
+]; // these materials dont have box2d (physics) properties, not banning these would cause massive lag (or even crash noita)
 
 let materialFrom = '';
 let materialTo = '';
@@ -70,7 +109,7 @@ twitchClient.connect();
 function setShiftFrom(material: string)
 {
     material = material.toLowerCase().trim();
-    if (illegalMaterials.indexOf(material) > -1) {
+    if (validMaterials.indexOf(material) === -1) {
         twitchClient.say(TWITCH_CHANNEL, 'Illegal material: ' + material);
         return;
     }
@@ -81,7 +120,7 @@ function setShiftFrom(material: string)
 function setShiftTo(material: string)
 {
     material = material.toLowerCase().trim();
-    if (illegalMaterials.indexOf(material) > -1) {
+    if (validMaterials.indexOf(material) === -1) {
         twitchClient.say(TWITCH_CHANNEL, 'Illegal material: ' + material);
         return;
     }
@@ -104,4 +143,3 @@ function tryShift()
         materialTo = '';
     }
 }
-
