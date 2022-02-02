@@ -1,8 +1,7 @@
-local LOG_SHIFT_RESULT_IN_GAME = true
-local LOG_FAULTY_MATERIAL = true
-
 local pollnet = dofile_once('mods/fungal-twitch/lib/pollnet.lua')
 local socket = pollnet.open_ws('ws://localhost:9444')
+local LOG_SHIFT_RESULT_IN_GAME = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_GAME")
+local LOG_FAULTY_MATERIAL = ModSettingGet("fungal-twitch.LOG_FAULTY_MATERIAL")
 
 function OnWorldPreUpdate()
 	local success, data = socket:poll()
