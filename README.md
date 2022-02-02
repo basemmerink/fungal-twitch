@@ -4,6 +4,7 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 
 ## Installation
 
+- Download (the latest version of) Nodejs if you don't have it already
 - Edit the .env file
   - TWITCH_BOT_NAME - The name of your bot account on twitch
     - If you don't have a bot account you can use your main twitch account, do note that it will send messages using that account
