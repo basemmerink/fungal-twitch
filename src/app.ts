@@ -21,7 +21,7 @@ const twitchClient = Client({
 });
 
 const validMaterials = [
-    "air","fire","spark","spark_electric","flame","sand_static","nest_static","bluefungi_static","rock_static",
+    "fire","spark","spark_electric","flame","sand_static","nest_static","bluefungi_static","rock_static",
     "water_static","endslime_static","slime_static","spore_pod_stalk","lavarock_static","meteorite_static",
     "templerock_static","steel_static","rock_static_glow","snow_static","ice_static","ice_acid_static",
     "ice_cold_static","ice_radioactive_static","ice_poison_static","ice_meteor_static","tubematerial",
@@ -71,7 +71,7 @@ const validMaterials = [
     "soil_lush_dark","soil_dead","soil_dark","sandstone_surface","slime_green","slime_yellow","pea_soup","endslime",
     "endslime_blood","gold_radioactive","steel_sand","metal_sand","sodium","purifying_powder","burning_powder",
     "fungus_powder_bad","shock_powder","plastic_molten","plastic_prop_molten","fungi_green","grass_dark",
-    "fungi_creeping","fungi_creeping_secret","peat","moss_rust"
+    "fungi_creeping","fungi_creeping_secret","peat","moss_rust","plant_material","plant_material_red"
 ]; // these materials have box2d (physics) properties and cause massive lag (or even crash noita)
 
 let materialFrom = '';
