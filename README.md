@@ -12,6 +12,7 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
   - TWITCH_OAUTH_TOKEN - To get your twitch oauth key go to https://twitchapps.com/tmi and login with your bot account
   - TWITCH_CHANNEL - The channel where you will livestream this mod
   - LOG_SHIFT_RESULT_TO_TWITCH - Do you want the bot account to send a message in twitch chat if a shift succeeds (true/false)
+  - COOLDOWN_PER_USER_IN_SECONDS - The cooldown in seconds that users need to wait before they can perform a shift again. Set to 0 to have no cooldown
 - Run the batch file RUN_THIS_THE_FIRST_TIME.bat - This will setup the nodejs environment, you only need to do this once
 - Run the batch file server.bat - This will start the server and is needed for the next step
 - Make 2 channel point redemptions, a template for those can be seen in the image below, at the bottom of this page
