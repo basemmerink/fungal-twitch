@@ -10,12 +10,16 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
     - If you don't have a bot account you can use your main twitch account, do note that it will send messages using that account
   - TWITCH_OAUTH_TOKEN - To get your twitch oauth key go to https://twitchapps.com/tmi and login with your bot account
   - TWITCH_CHANNEL - The channel where you will livestream this mod
-  - REWARD_FROM_ID - The ID of the channel point redemption for the "from" material
-  - REWARD_TO_ID - The ID of the channel point redemption for the "to" material
-    - First you should make 2 channel point redemptions, a template for those can be seen in the image below
-    - To get the IDs, you can run the server and redeem the channel point reward (make sure that user must enter a message). After redeeming the channel point reward, the server will print the reward ID in the console
   - LOG_SHIFT_RESULT_TO_TWITCH - Do you want the bot account to send a message in twitch chat if a shift succeeds (true/false)
 - Run the batch file RUN_THIS_THE_FIRST_TIME.bat - This will setup the nodejs environment, you only need to do this once
+- Run the batch file server.bat - This will start the server and is needed for the next step
+- Make 2 channel point redemptions, a template for those can be seen in the image below, at the bottom of this page
+- To get the ID of these channel points, redeem the channel point reward while the server is running (make sure that user must enter a message). 
+- After redeeming, the server will print the ID of the redemption
+- Edit the .env file again
+  - REWARD_FROM_ID - The ID of the channel point redemption for the "from" material
+  - REWARD_TO_ID - The ID of the channel point redemption for the "to" material
+- Stop the server - It needs to reload the .env, which can only be done by stopping it first
 
 ## Usage
 
