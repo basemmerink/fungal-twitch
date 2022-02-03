@@ -27,15 +27,22 @@ mod_settings =
       {
         id = "LOG_SHIFT_RESULT_IN_GAME",
         ui_name = "Log a shift result",
-        ui_description = "Toggle to show a message with the shifts details when it happens or not.",
+        ui_description = "Toggle to show a message with the shift details when it happens or not.",
         value_default = true,
         scope = MOD_SETTING_SCOPE_NEW_GAME,
       },
 			{
-				id = "LOG_FAULTY_MATERIAL",
-				ui_name = "Log a faulty material",
-				ui_description = "Toggle to show a message when someone has input a non-existant material or not.",
-				value_default = true,
+				id = "START_WITH_PEACE",
+				ui_name = "Start with Peace with the gods",
+				ui_description = "Toggle to start the run with the perk Peace with the gods or not.",
+				value_default = false,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+				id = "START_WITH_BREATHLESS",
+				ui_name = "Start with Breathless",
+				ui_description = "Toggle to start the run with the perk Breathless or not.",
+				value_default = false,
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
 			},
 		}
