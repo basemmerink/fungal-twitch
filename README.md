@@ -46,8 +46,8 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 
 Chat can redeem channel point rewards with either a "from" material or a "to" material.  
 If someone sets a "from" or "to" again, before the other one is set, it will override the old one  
-As soon as both materials are set, the fungal shift will happen.
-When a shift happens, the users that entered the materials that are used, will be put into a cooldown (the one you specified in .env)
+As soon as both materials are set, the fungal shift will happen.  
+When a shift happens, the users that entered the materials that are used, will be put into a cooldown (the one you specified in .env)  
 If you redeem a "from" shift, but then someone else redeems a "from" shift, and *then* a shift happens, you will not be put into cooldown
 
 ## Commands
