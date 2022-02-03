@@ -30,7 +30,7 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 - To get the ID of these channel points, redeem the channel point reward while the server is running
 - After redeeming, the server will print the ID of the redemption
 
-### Edit again
+### Edit and finalize
 - Edit the .env file again
   - REWARD_FROM_ID - The ID of the channel point redemption for the "from" material
   - REWARD_TO_ID - The ID of the channel point redemption for the "to" material
