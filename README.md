@@ -36,8 +36,11 @@ Chat can redeem channel point rewards with either a "from" material or a "to" ma
 If someone sets a "from" or "to" again, before the other one is set, it will override the old one  
 As soon as both materials are set, the fungal shift will happen.
 
-A message will be sent ingame to explain the shift that just happened.  
-If you do not wish to see this message you can change it in the mod settings ingame
+## Mod settings (ingame)
+
+- *Log a shift result* - A message with the materials from the shift will be sent to the player 
+- *Start with Peace with the gods* - The player will start with the perk *Peace with the gods*
+- *Start with Breathless* - The player will start with the perk *Breathless*
 
 ## Credits
 
