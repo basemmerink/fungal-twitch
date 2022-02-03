@@ -28,9 +28,9 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 - Run server.bat - You need to run this each time when you want to play this mod
 - Start a new run in Noita with the Fungal Twitch mod enabled (make sure to grant it extra privileges, this is needed for websockets to work)
 - If a message appears saying "Connection status: Open" then you know it works (the server will print a message too)
-- !materials to get a list of all materials - everyone can use this command
-- !banmaterial material_name to ban a material - use this when materials create a large amount of lag - only the streamer can use this command
-- !unbanmaterial material_name to unban a material - only the streamer can use this command
+- *!materials* to get a list of all materials - everyone can use this command
+- *!banmaterial material_name* to ban a material - use this when materials create a large amount of lag - only the streamer can use this command
+- *!unbanmaterial material_name* to unban a material - only the streamer can use this command
 
 Chat can redeem channel point rewards with either a "from" material or a "to" material.  
 If someone sets a "from" or "to" again, before the other one is set, it will override the old one  
