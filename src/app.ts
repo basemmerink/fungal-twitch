@@ -4,8 +4,9 @@ import { WebSocketServer } from 'ws';
 import {ChatUserstate, Client} from 'tmi.js';
 
 const PORT = 9444;
-const LOG_SHIFT_RESULT_TO_TWITCH = process.env.LOG_SHIFT_RESULT_TO_TWITCH;
+const LOG_SHIFT_RESULT_TO_TWITCH = process.env.LOG_SHIFT_RESULT_TO_TWITCH === 'true';
 const TWITCH_CHANNEL = process.env.TWITCH_CHANNEL;
+const COOLDOWN_PER_USER_IN_SECONDS = parseInt(process.env.COOLDOWN_PER_USER_IN_SECONDS);
 
 const webSocketServer = new WebSocketServer({ port: PORT });
 const twitchClient = Client({
@@ -71,10 +72,13 @@ const validMaterials = [
     "endslime_blood","gold_radioactive","steel_sand","metal_sand","sodium","purifying_powder","burning_powder",
     "fungus_powder_bad","shock_powder","plastic_molten","plastic_prop_molten","fungi_green","grass_dark",
     "fungi_creeping","fungi_creeping_secret","peat","moss_rust"
-]; // these materials dont have box2d (physics) properties, not banning these would cause massive lag (or even crash noita)
+]; // these materials have box2d (physics) properties and cause massive lag (or even crash noita)
 
 let materialFrom = '';
 let materialTo = '';
+let userFrom = '';
+let userTo = '';
+let users = new Map<string, number>();
 
 webSocketServer.on('connection', webSocket => {
     console.log('Noita connection opened');
@@ -93,10 +97,10 @@ twitchClient.on('message', (channel: string, userState: ChatUserstate, message: 
         return;
     }
     if (rewardId === process.env.REWARD_FROM_ID) {
-        setShiftFrom(message);
+        setShiftFrom(message, userState['display-name']);
     }
     else if (rewardId === process.env.REWARD_TO_ID) {
-        setShiftTo(message);
+        setShiftTo(message, userState['display-name']);
     }
     else {
         console.log(`${userState['display-name']} has redeemed channel points -- ID: ${rewardId} -- Message: ${message}`);
@@ -106,25 +110,43 @@ twitchClient.on('message', (channel: string, userState: ChatUserstate, message: 
 });
 twitchClient.connect();
 
-function setShiftFrom(material: string)
+function mayShift(username: string): boolean
+{
+    if (!users.has(username)) {
+        return true;
+    }
+    return users.get(username) + COOLDOWN_PER_USER_IN_SECONDS * 1000 < Date.now();
+}
+
+function setShiftFrom(material: string, username: string)
 {
     material = material.toLowerCase().trim();
+    if (!mayShift(username)) {
+        twitchClient.say(TWITCH_CHANNEL, username + ', your cooldown is ' + Math.ceil((users.get(username) + COOLDOWN_PER_USER_IN_SECONDS * 1000 - Date.now()) / 1000) + ' seconds');
+        return;
+    }
     if (validMaterials.indexOf(material) === -1) {
         twitchClient.say(TWITCH_CHANNEL, 'Illegal material: ' + material);
         return;
     }
     materialFrom = material;
+    userFrom = username;
     tryShift();
 }
 
-function setShiftTo(material: string)
+function setShiftTo(material: string, username: string)
 {
     material = material.toLowerCase().trim();
+    if (!mayShift(username)) {
+        twitchClient.say(TWITCH_CHANNEL, username + ', your cooldown is ' + Math.ceil((users.get(username) + COOLDOWN_PER_USER_IN_SECONDS * 1000 - Date.now()) / 1000) + ' seconds');
+        return;
+    }
     if (validMaterials.indexOf(material) === -1) {
         twitchClient.say(TWITCH_CHANNEL, 'Illegal material: ' + material);
         return;
     }
     materialTo = material;
+    userTo = username;
     tryShift();
 }
 
@@ -141,5 +163,8 @@ function tryShift()
         });
         materialFrom = '';
         materialTo = '';
+        users.set(userFrom, Date.now());
+        users.set(userTo, Date.now());
     }
 }
+

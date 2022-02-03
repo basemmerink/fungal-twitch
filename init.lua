@@ -15,7 +15,7 @@ function OnWorldPreUpdate()
 		if (mat1 > -1) then
 			if (mat2 > -1) then
 				if (LOG_SHIFT_RESULT_IN_GAME) then
-					GamePrintImportant("Shifting from " .. mats[1] .. " to " .. mats[2])
+					GamePrintImportant("Shifting from " .. GameTextGetTranslatedOrNot(CellFactory_GetUIName(mat1)) .. " to " .. GameTextGetTranslatedOrNot(CellFactory_GetUIName(mat2)))
 				end
 				ConvertMaterialEverywhere(mat1, mat2)
 			elseif (LOG_FAULTY_MATERIAL) then
