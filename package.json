@@ -9,7 +9,7 @@
   "author": "baasbase (https://linktr.ee/base_dev)",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^17.0.14"
+    "@types/node": "15.6.2"
   },
   "skipLibCheck": true,
   "dependencies": {
