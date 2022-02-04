@@ -7,7 +7,7 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 ### Download
 
 - Download the files from github and extract to your Noita mod folder. Rename the folder from fungal-twitch-main to fungal-twitch
-- Download (the latest version of) [Nodejs](https://nodejs.org/en/download/) if you don't have it already
+- Download the LTS version of [Nodejs](https://nodejs.org/en/download/) if you don't have it already
 
 ### Edit
 - Edit the .env file
