@@ -45,6 +45,7 @@ If you redeem a *from* shift, but then someone else redeems a *from* shift, and 
 
 ## Mod settings (ingame)
 
+- *The cooldown per user* - The cooldown per user in seconds
 - *Log a shift result ingame* - A message with the materials from the shift will be sent to the player 
 - *Log a shift result in Twitch* - A message with the materials from the shift will be sent to Twitch chat 
 - *Start with Peace with the gods* - The player will start with the perk *Peace with the gods*
