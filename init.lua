@@ -2,6 +2,7 @@ dofile_once("data/scripts/perks/perk.lua")
 local pollnet = dofile_once('mods/fungal-twitch/lib/pollnet.lua')
 local socket = pollnet.open_ws('ws://localhost:9444')
 local LOG_SHIFT_RESULT_IN_GAME = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_GAME")
+local LOG_SHIFT_RESULT_IN_TWITCH = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_TWITCH")
 local START_WITH_PEACE = ModSettingGet("fungal-twitch.START_WITH_PEACE")
 local START_WITH_BREATHLESS = ModSettingGet("fungal-twitch.START_WITH_BREATHLESS")
 
@@ -15,8 +16,15 @@ function OnWorldPreUpdate()
 		local mat1 = CellFactory_GetType(mats[1])
 		local mat2 = CellFactory_GetType(mats[2])
 		if (mat1 > -1 and mat2 > -1) then
+			local msg = "Shifting from " ..
+				GameTextGetTranslatedOrNot(CellFactory_GetUIName(mat1)) ..
+				" to " ..
+				GameTextGetTranslatedOrNot(CellFactory_GetUIName(mat2))
 			if (LOG_SHIFT_RESULT_IN_GAME) then
-				GamePrintImportant("Shifting from " .. GameTextGetTranslatedOrNot(CellFactory_GetUIName(mat1)) .. " to " .. GameTextGetTranslatedOrNot(CellFactory_GetUIName(mat2)))
+				GamePrintImportant(msg)
+			end
+			if (LOG_SHIFT_RESULT_IN_TWITCH) then
+				socket:send(msg)
 			end
 			ConvertMaterialEverywhere(mat1, mat2)
 		end

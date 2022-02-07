@@ -26,8 +26,15 @@ mod_settings =
 		settings = {
       {
         id = "LOG_SHIFT_RESULT_IN_GAME",
-        ui_name = "Log a shift result",
+        ui_name = "Log a shift result ingame",
         ui_description = "Toggle to show a message with the shift details when it happens or not.",
+        value_default = true,
+        scope = MOD_SETTING_SCOPE_NEW_GAME,
+      },
+      {
+        id = "LOG_SHIFT_RESULT_IN_TWITCH",
+        ui_name = "Log a shift result in Twitch",
+        ui_description = "Toggle to send a message to Twitch with the shift details when it happens or not.",
         value_default = true,
         scope = MOD_SETTING_SCOPE_NEW_GAME,
       },
