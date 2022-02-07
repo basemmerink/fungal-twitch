@@ -83,7 +83,7 @@ function startServer() {
         }
     });
 
-    const COOLDOWN_PER_USER_IN_SECONDS = 60;
+    let bannedMaterials = [];
     const validMaterials = [
         "fire", "spark", "spark_electric", "flame", "sand_static", "nest_static", "bluefungi_static", "rock_static",
         "water_static", "endslime_static", "slime_static", "spore_pod_stalk", "lavarock_static", "meteorite_static",
@@ -139,13 +139,6 @@ function startServer() {
         "purifying_powder", "burning_powder", "fungus_powder_bad", "shock_powder", "fungi_green", "grass_dark",
         "fungi_creeping", "fungi_creeping_secret", "peat", "moss_rust"
     ]; // these materials have box2d (physics) properties and cause massive lag (or even crash noita)
-
-    let materialFrom = '';
-    let materialTo = '';
-    let bannedMaterials = [];
-    let userFrom = '';
-    let userTo = '';
-    let users = new Map<string, number>();
 
     webSocketServer.on('connection', webSocket => {
         console.log();
@@ -244,10 +237,6 @@ function startServer() {
 
     function mayShift(material: string, username: string): boolean
     {
-        if (!userCanShift(username)) {
-            twitchClient.say(appData.channel, username + ', your cooldown is ' + Math.ceil((users.get(username) + COOLDOWN_PER_USER_IN_SECONDS * 1000 - Date.now()) / 1000) + ' seconds');
-            return false;
-        }
         if (!isValidMaterial(material)) {
             twitchClient.say(appData.channel, 'Illegal material: ' + material);
             return false;
@@ -259,22 +248,12 @@ function startServer() {
         return true;
     }
 
-    function userCanShift(username: string): boolean
-    {
-        if (!users.has(username)) {
-            return true;
-        }
-        return users.get(username) + COOLDOWN_PER_USER_IN_SECONDS * 1000 < Date.now();
-    }
-
     function setShiftFrom(material: string, username: string)
     {
         if (!mayShift(material, username)) {
             return;
         }
-        materialFrom = material;
-        userFrom = username;
-        tryShift();
+        sendWebsocketMessage(`${username} from ${material}`);
     }
 
     function setShiftTo(material: string, username: string)
@@ -282,22 +261,13 @@ function startServer() {
         if (!mayShift(material, username)) {
             return;
         }
-        materialTo = material;
-        userTo = username;
-        tryShift();
+        sendWebsocketMessage(`${username} to ${material}`);
     }
 
-    function tryShift()
+    function sendWebsocketMessage(msg: string): void
     {
-        if (materialFrom.length > 0 && materialTo.length > 0)
-        {
-            webSocketServer.clients.forEach(client => {
-                client.send(`${materialFrom} ${materialTo}`);
-            });
-            materialFrom = '';
-            materialTo = '';
-            users.set(userFrom, Date.now());
-            users.set(userTo, Date.now());
-        }
+        webSocketServer.clients.forEach(client => {
+            client.send(msg);
+        });
     }
 }

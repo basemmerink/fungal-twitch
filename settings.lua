@@ -25,6 +25,17 @@ mod_settings =
 		ui_description = "Settings for the Fungal Twitch mod",
 		settings = {
       {
+        id = "INDIVIDUAL_USER_COOLDOWN_IN_SECONDS",
+        ui_name = "The cooldown per user",
+        ui_description = "",
+				value_default = 60,
+				value_min = 0,
+				value_max = 300,
+				value_display_multiplier = 1,
+				value_display_formatting = " $0 seconds",
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+      },
+      {
         id = "LOG_SHIFT_RESULT_IN_GAME",
         ui_name = "Log a shift result ingame",
         ui_description = "Toggle to show a message with the shift details when it happens or not.",
