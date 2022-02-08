@@ -19,7 +19,8 @@ const appData = existsSync('application_data.json') ?
         channel: '',
         access_token: '',
         from_reward_id: '',
-        to_reward_id: ''
+        to_reward_id: '',
+        banned_materials: []
     };
 
 
@@ -83,7 +84,6 @@ function startServer() {
         }
     });
 
-    let bannedMaterials = [];
     const validMaterials = [
         "fire", "spark", "spark_electric", "flame", "sand_static", "nest_static", "bluefungi_static", "rock_static",
         "water_static", "endslime_static", "slime_static", "spore_pod_stalk", "lavarock_static", "meteorite_static",
@@ -178,7 +178,8 @@ function startServer() {
                         if (args.length > 0) {
                             const material = args[0].toLowerCase();
                             if (isValidMaterial(material)) {
-                                bannedMaterials.push(material);
+                                appData.banned_materials.push(material);
+                                saveAppData();
                                 twitchClient.say(appData.channel, `Material ${material} is now banned. Use !unbanmaterial ${material} to unban it`);
                             } else {
                                 twitchClient.say(appData.channel, 'Illegal material: ' + material);
@@ -191,7 +192,8 @@ function startServer() {
                         if (args.length > 0) {
                             const material = args[0].toLowerCase();
                             if (isValidMaterial(material)) {
-                                bannedMaterials = bannedMaterials.filter(mat => mat !== material);
+                                appData.banned_materials = appData.banned_materials.filter(mat => mat !== material);
+                                saveAppData();
                                 twitchClient.say(appData.channel, `Material ${material} is now unbanned. Use !banmaterial ${material} to ban it again`);
                             } else {
                                 twitchClient.say(appData.channel, 'Illegal material: ' + material);
@@ -241,7 +243,7 @@ function startServer() {
             twitchClient.say(appData.channel, 'Illegal material: ' + material);
             return false;
         }
-        if (bannedMaterials.indexOf(material) > -1) {
+        if (appData.banned_materials.indexOf(material) > -1) {
             twitchClient.say(appData.channel, 'Banned material: ' + material);
             return false;
         }

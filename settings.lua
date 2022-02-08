@@ -24,10 +24,67 @@ mod_settings =
 		ui_name = "Fungal Twitch Settings",
 		ui_description = "Settings for the Fungal Twitch mod",
 		settings = {
-      {
-        id = "INDIVIDUAL_USER_COOLDOWN_IN_SECONDS",
-        ui_name = "The cooldown per user",
-        ui_description = "",
+			{
+				id = "LOG_SHIFT_RESULT_IN_GAME",
+				ui_name = "Log a shift result ingame",
+				ui_description = "Toggle to show a message with the shift details when it happens or not.",
+				value_default = true,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+				id = "LOG_SHIFT_RESULT_IN_TWITCH",
+				ui_name = "Log a shift result in Twitch",
+				ui_description = "Toggle to send a message to Twitch with the shift details when it happens or not.",
+				value_default = true,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+				id = "START_WITH_TELEPORT",
+				ui_name = "Start with a small teleport bolt",
+				ui_description = "",
+				value_default = false,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+				id = "START_WITH_PEACE",
+				ui_name = "Start with the perk Peace with the gods",
+				ui_description = "",
+				value_default = false,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+				id = "START_WITH_BREATHLESS",
+				ui_name = "Start with the perk Breathless",
+				ui_description = "",
+				value_default = false,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+				ui_fn = mod_setting_vertical_spacing,
+				not_setting = true,
+			},
+			{
+				id = "txt1",
+				ui_name = "- Anarchy mode shifts as soon as the from and to materials are set",
+				not_setting = true,
+			},
+			{
+				id = "txt2",
+				ui_name = "- Democracy mode collects votes and shifts at a set interval",
+				not_setting = true,
+			},
+			{
+				id = "VOTE_MODE",
+				ui_name = "Vote mode",
+				ui_description = "",
+				value_default = "anarchy",
+				values = { {"anarchy","Anarchy (toggle me)"}, {"democracy","Democracy (toggle me)"} },
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+			},
+			{
+        id = "ANARCHY_COOLDOWN",
+        ui_name = "Anarchy cooldown",
+        ui_description = "The cooldown per user in anarchy mode",
 				value_default = 60,
 				value_min = 0,
 				value_max = 300,
@@ -35,40 +92,24 @@ mod_settings =
 				value_display_formatting = " $0 seconds",
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
       },
-      {
-        id = "LOG_SHIFT_RESULT_IN_GAME",
-        ui_name = "Log a shift result ingame",
-        ui_description = "Toggle to show a message with the shift details when it happens or not.",
-        value_default = true,
-        scope = MOD_SETTING_SCOPE_NEW_GAME,
-      },
-      {
-        id = "LOG_SHIFT_RESULT_IN_TWITCH",
-        ui_name = "Log a shift result in Twitch",
-        ui_description = "Toggle to send a message to Twitch with the shift details when it happens or not.",
-        value_default = true,
-        scope = MOD_SETTING_SCOPE_NEW_GAME,
-      },
 			{
-				id = "START_WITH_PEACE",
-				ui_name = "Start with Peace with the gods",
-				ui_description = "Toggle to start the run with the perk Peace with the gods or not.",
-				value_default = false,
+        id = "DEMOCRACY_INTERVAL",
+        ui_name = "Democracy interval",
+        ui_description = "At what interval does democracy mode decide the shift",
+				value_default = 30,
+				value_min = 10,
+				value_max = 150,
+				value_display_multiplier = 1,
+				value_display_formatting = " $0 seconds",
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
-			},
-			{
-				id = "START_WITH_BREATHLESS",
-				ui_name = "Start with Breathless",
-				ui_description = "Toggle to start the run with the perk Breathless or not.",
-				value_default = false,
-				scope = MOD_SETTING_SCOPE_NEW_GAME,
-			},
+      },
 		}
 	},
 
 }
 
 function ModSettingsUpdate( init_scope )
+	GamePrint("Updated: " .. ModSettingGet("fungal-twitch.VOTE_MODE"))
 	local old_version = mod_settings_get_version( mod_id )
 	mod_settings_update( mod_id, mod_settings, init_scope )
 end
