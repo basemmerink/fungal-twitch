@@ -11,6 +11,8 @@ const WS_PORT = 9444;
 
 const app = express();
 const server = createServer(app);
+const webSocketServer = new WebSocketServer({ port: WS_PORT });
+let twitchClient;
 
 const appData = existsSync('application_data.json') ?
     JSON.parse(readFileSync('application_data.json').toString()) :
@@ -20,16 +22,10 @@ const appData = existsSync('application_data.json') ?
         access_token: '',
         from_reward_id: '',
         to_reward_id: '',
-        banned_materials: []
+        banned_materials: [
+            'air', 'bush_seed', 'glass_brittle', 'glowshroom', 'ice_meteor_static', 'mushroom_giant_red',
+            'mushroom_giant_blue', 'plant_material', 'plant_material_red']
     };
-
-let validMaterials;
-if (existsSync('valid_materials.json')) {
-    validMaterials = JSON.parse(readFileSync('valid_materials.json').toString());
-} else {
-    console.log('File valid_materials.json could not be found, please re-install the mod');
-    process.exit(-1);
-}
 
 
 server.listen(PORT, () => console.log(`Webserver running on port ${PORT}`));
@@ -46,10 +42,45 @@ app.post('/twitch', (req, res, next) => {
     const response = JSON.parse(req.rawBody);
     appData.access_token = response.access_token;
     saveAppData();
-    startServer();
+    connectToTwitch();
 });
 app.all('/*', (req, res, next) => {
     res.sendFile('src/login.html', {root: __dirname + '/../..'});
+});
+
+webSocketServer.on('connection', webSocket => {
+    console.log();
+    console.log('--------------------------------------------------------');
+    console.log('Noita connection opened');
+    console.log('Use !banmaterial material_name to ban a material');
+    console.log('Use !unbanmaterial material_name to unban a material');
+    console.log('Only the streamer can input these commands.');
+    console.log('--------------------------------------------------------');
+
+    if (appData.banned_materials.length > 0)
+    {
+        webSocket.send('system init_banned_materials ' + appData.banned_materials.join(','))
+    }
+
+    webSocket.on('message', data => {
+        const message = data.toString();
+        const [command, ...args] = message.split(' ');
+        switch (command) {
+            case 'ban':
+                appData.banned_materials.push(args[0]);
+                saveAppData();
+                sendTwitchMessage(`Material ${args[0]} is now banned. Use !unbanmaterial ${args[0]} to unban it`);
+                break;
+            case 'unban':
+                appData.banned_materials = appData.banned_materials.filter(mat => mat !== args[0]);
+                saveAppData();
+                sendTwitchMessage(`Material ${args[0]} is now unbanned. Use !banmaterial ${args[0]} to ban it again`);
+                break;
+            default:
+                sendTwitchMessage(message);
+                break;
+        }
+    });
 });
 
 function saveAppData() {
@@ -75,12 +106,11 @@ if (!appData.access_token) {
 }
 else
 {
-    startServer();
+    connectToTwitch();
 }
 
-function startServer() {
-    const webSocketServer = new WebSocketServer({ port: WS_PORT });
-    const twitchClient = Client({
+function connectToTwitch() {
+    twitchClient = Client({
         identity: {
             username: appData.bot_name,
             password: 'oauth:' + appData.access_token
@@ -89,20 +119,6 @@ function startServer() {
         connection: {
             reconnect: true
         }
-    });
-
-    webSocketServer.on('connection', webSocket => {
-        console.log();
-        console.log('--------------------------------------------------------');
-        console.log('Noita connection opened');
-        console.log('Use !banmaterial material_name to ban a material');
-        console.log('Use !unbanmaterial material_name to unban a material');
-        console.log('Only the streamer can input these commands.');
-        console.log('--------------------------------------------------------');
-
-        webSocket.on('message', data => {
-            twitchClient.say(appData.channel, data.toString());
-        });
     });
 
     twitchClient.on('connected', (addr, port) => {
@@ -119,108 +135,85 @@ function startServer() {
         const rewardId = userState['custom-reward-id'];
         const username = userState['display-name'];
         if (!rewardId) {
-            if (message === '!materials') {
-                twitchClient.say(appData.channel, 'https://pastebin.com/eAKLkG8u');
-            }
-            if (username.toLowerCase() === appData.channel.toLowerCase()) {
-                const [command, ...args] = message.split(' ');
-                switch (command.toLowerCase()) {
-                    case '!banmaterial':
-                        if (args.length > 0) {
-                            const material = args[0].toLowerCase();
-                            if (isValidMaterial(material)) {
-                                appData.banned_materials.push(material);
-                                saveAppData();
-                                twitchClient.say(appData.channel, `Material ${material} is now banned. Use !unbanmaterial ${material} to unban it`);
-                            } else {
-                                twitchClient.say(appData.channel, 'Illegal material: ' + material);
-                            }
-                        } else {
-                            twitchClient.say(appData.channel, '/me Usage: !banmaterial material_name');
-                        }
-                        break;
-                    case '!unbanmaterial':
-                        if (args.length > 0) {
-                            const material = args[0].toLowerCase();
-                            if (isValidMaterial(material)) {
-                                appData.banned_materials = appData.banned_materials.filter(mat => mat !== material);
-                                saveAppData();
-                                twitchClient.say(appData.channel, `Material ${material} is now unbanned. Use !banmaterial ${material} to ban it again`);
-                            } else {
-                                twitchClient.say(appData.channel, 'Illegal material: ' + material);
-                            }
-                        } else {
-                            twitchClient.say(appData.channel, '/me Usage: !unbanmaterial material_name');
-                        }
-                        break;
-                }
-            }
+            const [command, ...args] = message.split(' ');
+            handleCommand(command, args, username);
             return;
         }
         const material = message.toLowerCase().trim();
-        let success = false;
         if (appData.from_reward_id.length === 0) {
             console.log(`${username}: ${message}`);
             if (readlineSync.keyInYN(`Is this the FROM material? `)) {
                 appData.from_reward_id = rewardId;
-                success = true;
                 saveAppData();
+                return;
             }
         }
-        if (appData.to_reward_id.length === 0 && !success) {
+        if (appData.to_reward_id.length === 0) {
             console.log(`${username}: ${message}`);
             if (readlineSync.keyInYN(`Is this the TO material? `)) {
                 appData.to_reward_id = rewardId;
                 saveAppData();
+                return;
             }
         }
         if (rewardId === appData.from_reward_id) {
-            setShiftFrom(material, username);
+            sendWebsocketMessage(`${username} from ${material}`);
         }
-        else if (rewardId === appData.to_reward_id) {
-            setShiftTo(material, username);
+        if (rewardId === appData.to_reward_id) {
+            sendWebsocketMessage(`${username} to ${material}`);
         }
     });
     twitchClient.connect();
+}
 
-    function isValidMaterial(material: string): boolean
-    {
-        return validMaterials.indexOf(material) > -1;
+function handleCommand(command: string, args: string[], username: string): void
+{
+    const isStreamer = username.toLowerCase() === appData.channel.toLowerCase();
+    switch (command.toLowerCase()) {
+        case '!materials':
+            sendTwitchMessage('https://pastebin.com/eAKLkG8u');
+            break;
+        case '!banmaterial':
+            if (isStreamer)
+            {
+                if (args.length > 0)
+                {
+                    sendWebsocketMessage(username + ' ban ' + args[0].toLowerCase());
+                }
+                else
+                {
+                    sendTwitchMessage('/me Usage: !banmaterial material_name');
+                }
+            }
+            break;
+        case '!unbanmaterial':
+            if (isStreamer)
+            {
+                if (args.length > 0)
+                {
+                    sendWebsocketMessage(username + ' unban ' + args[0].toLowerCase());
+                }
+                else
+                {
+                    sendTwitchMessage('/me Usage: !unbanmaterial material_name');
+                }
+            }
+            break;
+        default:
+            break;
     }
+}
 
-    function mayShift(material: string, username: string): boolean
-    {
-        if (!isValidMaterial(material)) {
-            twitchClient.say(appData.channel, 'Illegal material: ' + material);
-            return false;
-        }
-        if (appData.banned_materials.indexOf(material) > -1) {
-            twitchClient.say(appData.channel, 'Banned material: ' + material);
-            return false;
-        }
-        return true;
-    }
+function sendWebsocketMessage(msg: string): void
+{
+    webSocketServer.clients.forEach(client => {
+        client.send(msg);
+    });
+}
 
-    function setShiftFrom(material: string, username: string)
-    {
-        if (!mayShift(material, username)) {
-            return;
-        }
-        sendWebsocketMessage(`${username} from ${material}`);
-    }
-
-    function setShiftTo(material: string, username: string)
-    {
-        if (!mayShift(material, username)) {
-            return;
-        }
-        sendWebsocketMessage(`${username} to ${material}`);
-    }
-
-    function sendWebsocketMessage(msg: string): void
-    {
-        webSocketServer.clients.forEach(client => {
-            client.send(msg);
-        });
+function sendTwitchMessage(msg: string): void
+{
+    if (twitchClient) {
+        twitchClient.say(appData.channel, msg);
     }
 }

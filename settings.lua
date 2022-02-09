@@ -1,5 +1,8 @@
 dofile("data/scripts/lib/mod_settings.lua")
 
+local lastMode = ModSettingGet("fungal-twitch.VOTE_MODE")
+local isAnarchy = lastMode == nil and true or lastMode == "anarchy"
+
 function mod_setting_bool_custom( mod_id, gui, in_main_menu, im_id, setting )
 	local value = ModSettingGetNextValue( mod_setting_get_id(mod_id,setting) )
 	local text = setting.ui_name .. " - " .. GameTextGet( value and "$option_on" or "$option_off" )
@@ -12,12 +15,15 @@ function mod_setting_bool_custom( mod_id, gui, in_main_menu, im_id, setting )
 end
 
 function mod_setting_change_callback( mod_id, gui, in_main_menu, setting, old_value, new_value  )
-	print( tostring(new_value) )
+	isAnarchy = new_value == "anarchy"
+	GamePrint( tostring(old_value) .. " - " .. tostring(new_value) )
 end
 
 local mod_id = "fungal-twitch"
 mod_settings_version = 1
-mod_settings =
+
+function getModSettings()
+return
 {
 	{
 		category_id = "mod_settings",
@@ -64,60 +70,74 @@ mod_settings =
 				not_setting = true,
 			},
 			{
+				id = "VOTE_MODE",
+				ui_name = "Vote mode",
+				ui_description = "Toggle me",
+				value_default = "anarchy",
+				values = { {"anarchy","[Anarchy]"}, {"democracy","[Democracy]"} },
+				scope = MOD_SETTING_SCOPE_RUNTIME,
+				change_fn = mod_setting_change_callback,
+			},
+			{
+				ui_fn = mod_setting_vertical_spacing,
+				not_setting = true,
+			},
+			{
 				id = "txt1",
 				ui_name = "- Anarchy mode shifts as soon as the from and to materials are set",
 				not_setting = true,
+				hidden = not isAnarchy
 			},
 			{
 				id = "txt2",
 				ui_name = "- Democracy mode collects votes and shifts at a set interval",
 				not_setting = true,
+				hidden = isAnarchy
 			},
 			{
-				id = "VOTE_MODE",
-				ui_name = "Vote mode",
-				ui_description = "",
-				value_default = "anarchy",
-				values = { {"anarchy","Anarchy (toggle me)"}, {"democracy","Democracy (toggle me)"} },
-				scope = MOD_SETTING_SCOPE_NEW_GAME,
+				ui_fn = mod_setting_vertical_spacing,
+				not_setting = true,
 			},
 			{
         id = "ANARCHY_COOLDOWN",
-        ui_name = "Anarchy cooldown",
-        ui_description = "The cooldown per user in anarchy mode",
+        ui_name = "Anarchy cooldown per user",
+        ui_description = "",
 				value_default = 60,
 				value_min = 0,
 				value_max = 300,
 				value_display_multiplier = 1,
 				value_display_formatting = " $0 seconds",
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
+				hidden = not isAnarchy
       },
 			{
         id = "DEMOCRACY_INTERVAL",
         ui_name = "Democracy interval",
-        ui_description = "At what interval does democracy mode decide the shift",
+        ui_description = "At what interval will shifts happen",
 				value_default = 30,
 				value_min = 10,
 				value_max = 150,
 				value_display_multiplier = 1,
 				value_display_formatting = " $0 seconds",
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
+				hidden = isAnarchy
       },
 		}
 	},
 
 }
 
+end
+
 function ModSettingsUpdate( init_scope )
-	GamePrint("Updated: " .. ModSettingGet("fungal-twitch.VOTE_MODE"))
 	local old_version = mod_settings_get_version( mod_id )
-	mod_settings_update( mod_id, mod_settings, init_scope )
+	mod_settings_update( mod_id, getModSettings(), init_scope )
 end
 
 function ModSettingsGuiCount()
-	return mod_settings_gui_count( mod_id, mod_settings )
+	return mod_settings_gui_count( mod_id, getModSettings() )
 end
 
 function ModSettingsGui( gui, in_main_menu )
-	mod_settings_gui( mod_id, mod_settings, gui, in_main_menu )
+	mod_settings_gui( mod_id, getModSettings(), gui, in_main_menu )
 end

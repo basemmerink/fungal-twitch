@@ -11,12 +11,14 @@ local VOTE_MODE = ModSettingGet("fungal-twitch.VOTE_MODE")
 local ANARCHY_COOLDOWN = ModSettingGet("fungal-twitch.ANARCHY_COOLDOWN")
 local DEMOCRACY_INTERVAL = ModSettingGet("fungal-twitch.DEMOCRACY_INTERVAL")
 
+local banned_materials = {}
+
 local fromUser = ""
 local toUser = ""
 local fromMaterial = ""
 local toMaterial = ""
-
 local anarchy_cooldowns = {}
+
 local last_democracy_tick = 0
 local democracy_votes_from = {}
 local democracy_votes_to = {}
@@ -36,6 +38,29 @@ function OnWorldPreUpdate()
 	end
 end
 
+function OnPlayerSpawned(player_entity)
+	GamePrintImportant("Connection status: " .. socket:status())
+
+	if (START_WITH_TELEPORT) then
+		local x, y = EntityGetTransform(player_entity)
+		GamePickUpInventoryItem(player_entity, EntityLoad('data/entities/misc/custom_cards/teleport_projectile_short.xml', x, y), true)
+	end
+
+	if (START_WITH_PEACE) then
+		givePerk(player_entity, "PEACE_WITH_GODS")
+	end
+	if (START_WITH_BREATHLESS) then
+		givePerk(player_entity, "BREATH_UNDERWATER")
+	end
+end
+
+function givePerk(player_entity, perk_id)
+	local x, y = EntityGetTransform(player_entity)
+
+	local perk_entity = perk_spawn(x, y, perk_id)
+	perk_pickup(perk_entity, player_entity, nil, false, false)
+end
+
 function poll()
 	local success, data = socket:poll()
 	if (success and data and string.len(data) > 0) then
@@ -52,6 +77,38 @@ function poll()
 		local method = command[2]
 		local material = command[3]
 
+		if (method == "init_banned_materials") then
+			for key in string.gmatch(material, '[^,]+') do
+				table.insert(banned_materials, key)
+			end
+			return
+		end
+
+		if (isIllegalMaterial(material)) then
+			socket:send(user .. ", illegal material: " .. material)
+			return
+		end
+		if (isBannedMaterial(material)) then
+			socket:send(user .. ", banned material: " .. material)
+			return
+		end
+
+		if (method == "ban") then
+			table.insert(banned_materials, material)
+			socket:send("ban " .. material)
+			return
+		end
+		if (method == "unban") then
+			for index,value in ipairs(banned_materials) do
+					if (value == material) then
+						table.remove(banned_materials, index)
+						break
+					end
+			end
+			socket:send("unban " .. material)
+			return
+		end
+
 		if (VOTE_MODE == "anarchy") then
 			doAnarchy(user, method, material)
 		end
@@ -59,6 +116,28 @@ function poll()
 			doDemocracy(user, method, material)
 		end
 	end
+end
+
+function isIllegalMaterial(material_name)
+	local type = CellFactory_GetType(material_name)
+	if (type == -1) then
+		return true
+	end
+	for _,k in ipairs(CellFactory_GetTags(type)) do
+		if (k == "[box2d]") then
+			return true
+		end
+	end
+	return false
+end
+
+function isBannedMaterial(material_name)
+	for _,k in ipairs(banned_materials) do
+		if (k == material_name) then
+			return true
+		end
+	end
+	return false
 end
 
 function democracyTick()
@@ -110,19 +189,21 @@ function namesToVotes(originalTable)
 end
 
 function drawUI()
+	local player = EntityGetWithTag("player_unit")[1]
+	if (player == nil or EntityGetIsAlive(player) == false) then
+		return
+	end
+
 	gui_id = 3355
 	GuiStartFrame(gui)
 	GuiIdPushString(gui, "fungal-twitch")
 
-	local player = EntityGetWithTag("player_unit")[1]
-	if (player) then
-		local platform_shooter_player = EntityGetFirstComponentIncludingDisabled(player, "PlatformShooterPlayerComponent")
-		if (platform_shooter_player) then
-			local is_gamepad = ComponentGetValue2(platform_shooter_player, "mHasGamepadControlsPrev")
-			if (is_gamepad) then
-				GuiOptionsAdd(gui, GUI_OPTION.NonInteractive)
-				GuiOptionsAdd(gui, GUI_OPTION.AlwaysClickable)
-			end
+	local platform_shooter_player = EntityGetFirstComponentIncludingDisabled(player, "PlatformShooterPlayerComponent")
+	if (platform_shooter_player) then
+		local is_gamepad = ComponentGetValue2(platform_shooter_player, "mHasGamepadControlsPrev")
+		if (is_gamepad) then
+			GuiOptionsAdd(gui, GUI_OPTION.NonInteractive)
+			GuiOptionsAdd(gui, GUI_OPTION.AlwaysClickable)
 		end
 	end
 
@@ -150,32 +231,6 @@ function drawUI()
 	GuiIdPop(gui)
 end
 
-function doAnarchy(user, method, material)
-	local time = GameGetRealWorldTimeSinceStarted()
-	if (anarchy_cooldowns[user] ~= nil) then
-		if (anarchy_cooldowns[user] + ANARCHY_COOLDOWN - time > 0) then
-			socket:send(user .. ", your cooldown is " .. string.format("%.0f", cooldown)  .. " seconds")
-			return
-		end
-	end
-
-	if (method == "from") then
-		fromUser = user
-		fromMaterial = material
-	end
-	if (method == "to") then
-		toUser = user
-		toMaterial = material
-	end
-
-	local success = doShift()
-
-	if (success) then
-		anarchy_cooldowns[fromUser] = time
-		anarchy_cooldowns[toUser] = time
-	end
-end
-
 function doShift()
 	if (fromMaterial ~= "" and toMaterial ~= "") then
 		local mat1 = CellFactory_GetType(fromMaterial)
@@ -198,6 +253,37 @@ function doShift()
 	return false
 end
 
+function getReadableName(material)
+	return GameTextGetTranslatedOrNot(CellFactory_GetUIName(CellFactory_GetType(material)))
+end
+
+function doAnarchy(user, method, material)
+	local time = GameGetRealWorldTimeSinceStarted()
+	if (anarchy_cooldowns[user] ~= nil) then
+		local cooldown = anarchy_cooldowns[user] + ANARCHY_COOLDOWN - time
+		if (cooldown > 0) then
+			socket:send(user .. ", your cooldown is " .. string.format("%.0f", cooldown)  .. " seconds")
+			return
+		end
+	end
+
+	if (method == "from") then
+		fromUser = user
+		fromMaterial = material
+	end
+	if (method == "to") then
+		toUser = user
+		toMaterial = material
+	end
+
+	local success = doShift()
+
+	if (success) then
+		anarchy_cooldowns[fromUser] = time
+		anarchy_cooldowns[toUser] = time
+	end
+end
+
 function doDemocracy(user, method, material)
 	if (method == "from") then
 		democracy_votes_from[user] = material
@@ -205,31 +291,4 @@ function doDemocracy(user, method, material)
 	if (method == "to") then
 		democracy_votes_to[user] = material
 	end
-end
-
-function getReadableName(material)
-	return GameTextGetTranslatedOrNot(CellFactory_GetUIName(CellFactory_GetType(material)))
-end
-
-function OnPlayerSpawned(player_entity)
-	GamePrintImportant("Connection status: " .. socket:status())
-
-	if (START_WITH_TELEPORT) then
-		local x, y = EntityGetTransform(player_entity)
-		GamePickUpInventoryItem(player_entity, EntityLoad('data/entities/misc/custom_cards/teleport_projectile_short.xml', x, y), true)
-	end
-
-	if (START_WITH_PEACE) then
-		givePerk(player_entity, "PEACE_WITH_GODS")
-	end
-	if (START_WITH_BREATHLESS) then
-		givePerk(player_entity, "BREATH_UNDERWATER")
-	end
-end
-
-function givePerk(player_entity, perk_id)
-	local x, y = EntityGetTransform(player_entity)
-
-	local perk_entity = perk_spawn(x, y, perk_id)
-	perk_pickup(perk_entity, player_entity, nil, false, false)
 end
