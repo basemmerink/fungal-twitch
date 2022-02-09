@@ -45,11 +45,14 @@ If you redeem a *from* shift, but then someone else redeems a *from* shift, and 
 
 ## Mod settings (ingame)
 
-- *The cooldown per user* - The cooldown per user in seconds
 - *Log a shift result ingame* - A message with the materials from the shift will be sent to the player 
 - *Log a shift result in Twitch* - A message with the materials from the shift will be sent to Twitch chat 
+- *Start with a small teleport bolt* - A small teleport bolt will be added to the players inventory on new game
 - *Start with Peace with the gods* - The player will start with the perk *Peace with the gods*
 - *Start with Breathless* - The player will start with the perk *Breathless*
+- *Vote mode* - Toggle between Anarchy and Democracy mode
+- *Anarchy cooldown* - The cooldown per user in seconds
+- *Democracy interval* - The interval at which votes will be collected and a shift happens
 
 ## Credits
 
