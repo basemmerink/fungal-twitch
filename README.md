@@ -33,11 +33,26 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 
 ## How it works
 
+First the streamer picks a mode in the ingame settings, I suggest starting with Anarchy mode for optimal chaos
+
+### Anarchy mode
+
 Chat can redeem channel point rewards with either a *from* material or a *to* material.  
-If someone sets a *from* or *to* again, before the other one is set, it will override the old one  
 As soon as both materials are set, the fungal shift will happen.  
 When a shift happens, the users that entered the materials that are used, will be put into a cooldown  
-If you redeem a *from* shift, but then someone else redeems a *from* shift, and *then* a shift happens, you will not be put into cooldown
+If you play with Unbalanced mode, then each person can control a shift, otherwise votes will be overriden
+
+### Democracy mode
+
+Chat can redeem channel point rewards with either a *from* material or a *to* material
+After a set amount of time, the *from* and *to* with the highest amount of votes will be shifted
+
+### TI mode
+
+TI mode plays like the classic Twitch Integration.  
+A random list of 4 *from* and 4 *to* materials is chosen.  
+People can vote by saying 1-4 or a-d or even 1c, or 3a for example.  
+After a set amount of time, the *from* and *to* with the highest amount of votes will be shifted
 
 ## Commands
 
@@ -52,10 +67,11 @@ If you redeem a *from* shift, but then someone else redeems a *from* shift, and 
 - *Start with a small teleport bolt* - A small teleport bolt will be added to the players inventory on new game
 - *Start with Peace with the gods* - The player will start with the perk *Peace with the gods*
 - *Start with Breathless* - The player will start with the perk *Breathless*
-- *Vote mode* - Toggle between Anarchy and Democracy mode
+- *Vote mode* - Toggle between Anarchy mode, Democracy mode and TI (which acts like the classic twitch integration)
 - *Unbalanced mode* - Toggle to let people fully control shifts, both from and to (anarchy only)
 - *Anarchy cooldown* - The cooldown per user in seconds
 - *Democracy interval* - The interval at which votes will be collected and a shift happens
+- *TI interval* - The interval at which votes will be collected and a shift happens
 
 ## Credits
 
