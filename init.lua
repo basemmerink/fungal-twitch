@@ -8,6 +8,7 @@ local START_WITH_TELEPORT = ModSettingGet("fungal-twitch.START_WITH_TELEPORT")
 local START_WITH_PEACE = ModSettingGet("fungal-twitch.START_WITH_PEACE")
 local START_WITH_BREATHLESS = ModSettingGet("fungal-twitch.START_WITH_BREATHLESS")
 local VOTE_MODE = ModSettingGet("fungal-twitch.VOTE_MODE")
+local UNBALANCED_MODE = ModSettingGet("fungal-twitch.UNBALANCED_MODE")
 local ANARCHY_COOLDOWN = ModSettingGet("fungal-twitch.ANARCHY_COOLDOWN")
 local DEMOCRACY_INTERVAL = ModSettingGet("fungal-twitch.DEMOCRACY_INTERVAL")
 
@@ -15,9 +16,9 @@ local banned_materials = {}
 
 local fromUser = ""
 local toUser = ""
-local fromMaterial = ""
-local toMaterial = ""
 local anarchy_cooldowns = {}
+local anarchy_users_from = {}
+local anarchy_users_to = {}
 
 local last_democracy_tick = 0
 local democracy_votes_from = {}
@@ -149,9 +150,8 @@ function democracyTick()
 		local from_table = namesToVotes(democracy_votes_from)
 		local to_table = namesToVotes(democracy_votes_to)
 
-		fromMaterial = from_table[1].mat
-		toMaterial = to_table[1].mat
-		doShift()
+		doShift(from_table[1].mat, to_table[1].mat)
+
 		last_democracy_tick = time
 		democracy_votes_from = {}
 		democracy_votes_to = {}
@@ -231,15 +231,13 @@ function drawUI()
 	GuiIdPop(gui)
 end
 
-function doShift()
-	if (fromMaterial ~= "" and toMaterial ~= "") then
-		local mat1 = CellFactory_GetType(fromMaterial)
-		local mat2 = CellFactory_GetType(toMaterial)
+function doShift(from, to)
+	if (from ~= nil and from ~= "" and to ~= nil and to ~= "") then
+		local mat1 = CellFactory_GetType(from)
+		local mat2 = CellFactory_GetType(to)
 		if (mat1 > -1 and mat2 > -1) then
-			local mat1String = getReadableName(fromMaterial)
-			local mat2String = getReadableName(toMaterial)
-			fromMaterial = ""
-			toMaterial = ""
+			local mat1String = getReadableName(from)
+			local mat2String = getReadableName(to)
 			ConvertMaterialEverywhere(mat1, mat2)
 			if (LOG_SHIFT_RESULT_IN_GAME) then
 				GamePrintImportant("Shifting from " .. mat1String .. " to " .. mat2String)
@@ -269,16 +267,23 @@ function doAnarchy(user, method, material)
 
 	if (method == "from") then
 		fromUser = user
-		fromMaterial = material
+		anarchy_users_from[user] = material
 	end
 	if (method == "to") then
 		toUser = user
-		toMaterial = material
+		anarchy_users_to[user] = material
 	end
 
-	local success = doShift()
+	local success = false
+	if (UNBALANCED_MODE) then
+		success = doShift(anarchy_users_from[user], anarchy_users_to[user])
+	else
+		success = doShift(anarchy_users_from[fromUser], anarchy_users_to[toUser])
+	end
 
 	if (success) then
+		anarchy_users_from[fromUser] = nil
+		anarchy_users_to[toUser] = nil
 		anarchy_cooldowns[fromUser] = time
 		anarchy_cooldowns[toUser] = time
 	end

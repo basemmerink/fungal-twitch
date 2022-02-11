@@ -99,6 +99,14 @@ return
 				not_setting = true,
 			},
 			{
+				id = "UNBALANCED_MODE",
+				ui_name = "Unbalanced mode",
+				ui_description = "Everyone can fully control a shift, both from and to",
+				value_default = false,
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+				hidden = not isAnarchy
+			},
+			{
         id = "ANARCHY_COOLDOWN",
         ui_name = "Anarchy cooldown per user",
         ui_description = "",
