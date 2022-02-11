@@ -1,4 +1,4 @@
-<a href='https://ko-fi.com/baasbase' target='_blank'><img height='35' style='border:0px;height:46px;' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+<a href='https://ko-fi.com/baasbase' target='_blank'><img height='35' style='border:0px;height:46px;' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com'></a>
 
 # Fungal Twitch
 
@@ -53,6 +53,7 @@ If you redeem a *from* shift, but then someone else redeems a *from* shift, and 
 - *Start with Peace with the gods* - The player will start with the perk *Peace with the gods*
 - *Start with Breathless* - The player will start with the perk *Breathless*
 - *Vote mode* - Toggle between Anarchy and Democracy mode
+- *Unbalanced mode* - Toggle to let people fully control shifts, both from and to (anarchy only)
 - *Anarchy cooldown* - The cooldown per user in seconds
 - *Democracy interval* - The interval at which votes will be collected and a shift happens
 
