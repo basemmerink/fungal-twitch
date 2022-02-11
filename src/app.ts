@@ -135,7 +135,11 @@ function connectToTwitch() {
         const rewardId = userState['custom-reward-id'];
         const username = userState['display-name'];
         if (!rewardId) {
-            const [command, ...args] = message.split(' ');
+            const [first, ...args] = message.split(' ');
+            const command = first.toLowerCase();
+            if (/[1-4a-d]{1,2}/.test(command)) {
+                sendWebsocketMessage(username + ' ti ' + command);
+            }
             handleCommand(command, args, username);
             return;
         }
@@ -169,7 +173,7 @@ function connectToTwitch() {
 function handleCommand(command: string, args: string[], username: string): void
 {
     const isStreamer = username.toLowerCase() === appData.channel.toLowerCase();
-    switch (command.toLowerCase()) {
+    switch (command) {
         case '!materials':
             sendTwitchMessage('https://pastebin.com/eAKLkG8u');
             break;

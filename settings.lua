@@ -1,7 +1,13 @@
 dofile("data/scripts/lib/mod_settings.lua")
 
 local lastMode = ModSettingGet("fungal-twitch.VOTE_MODE")
-local isAnarchy = lastMode == nil and true or lastMode == "anarchy"
+
+function isMode(mode)
+	if (lastMode == nil) then
+		return mode == "anarchy"
+	end
+	return lastMode == mode
+end
 
 function mod_setting_bool_custom( mod_id, gui, in_main_menu, im_id, setting )
 	local value = ModSettingGetNextValue( mod_setting_get_id(mod_id,setting) )
@@ -15,7 +21,7 @@ function mod_setting_bool_custom( mod_id, gui, in_main_menu, im_id, setting )
 end
 
 function mod_setting_change_callback( mod_id, gui, in_main_menu, setting, old_value, new_value  )
-	isAnarchy = new_value == "anarchy"
+	lastMode = new_value
 	GamePrint( tostring(old_value) .. " - " .. tostring(new_value) )
 end
 
@@ -74,7 +80,7 @@ return
 				ui_name = "Vote mode",
 				ui_description = "Toggle me",
 				value_default = "anarchy",
-				values = { {"anarchy","[Anarchy]"}, {"democracy","[Democracy]"} },
+				values = { {"anarchy","[Anarchy]"}, {"democracy","[Democracy]"}, {"ti","[TI]"} },
 				scope = MOD_SETTING_SCOPE_RUNTIME,
 				change_fn = mod_setting_change_callback,
 			},
@@ -86,13 +92,19 @@ return
 				id = "txt1",
 				ui_name = "- Anarchy mode shifts as soon as the from and to materials are set",
 				not_setting = true,
-				hidden = not isAnarchy
+				hidden = not isMode("anarchy")
 			},
 			{
 				id = "txt2",
 				ui_name = "- Democracy mode collects votes and shifts at a set interval",
 				not_setting = true,
-				hidden = isAnarchy
+				hidden = not isMode("democracy")
+			},
+			{
+				id = "txt3",
+				ui_name = "- TI mode uses random materials and lets chat vote like Twitch Integration",
+				not_setting = true,
+				hidden = not isMode("ti")
 			},
 			{
 				ui_fn = mod_setting_vertical_spacing,
@@ -104,7 +116,7 @@ return
 				ui_description = "Everyone can fully control a shift, both from and to",
 				value_default = false,
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
-				hidden = not isAnarchy
+				hidden = not isMode("anarchy")
 			},
 			{
         id = "ANARCHY_COOLDOWN",
@@ -116,7 +128,7 @@ return
 				value_display_multiplier = 1,
 				value_display_formatting = " $0 seconds",
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
-				hidden = not isAnarchy
+				hidden = not isMode("anarchy")
       },
 			{
         id = "DEMOCRACY_INTERVAL",
@@ -128,7 +140,19 @@ return
 				value_display_multiplier = 1,
 				value_display_formatting = " $0 seconds",
 				scope = MOD_SETTING_SCOPE_NEW_GAME,
-				hidden = isAnarchy
+				hidden = not isMode("democracy")
+      },
+			{
+        id = "TI_INTERVAL",
+        ui_name = "TI interval",
+        ui_description = "At what interval will shifts happen",
+				value_default = 30,
+				value_min = 10,
+				value_max = 150,
+				value_display_multiplier = 1,
+				value_display_formatting = " $0 seconds",
+				scope = MOD_SETTING_SCOPE_NEW_GAME,
+				hidden = not isMode("ti")
       },
 		}
 	},

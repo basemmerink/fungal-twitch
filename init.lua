@@ -1,46 +1,42 @@
 dofile_once("data/scripts/perks/perk.lua")
-local pollnet = dofile_once('mods/fungal-twitch/lib/pollnet.lua')
-local socket = pollnet.open_ws('ws://localhost:9444')
+dofile_once("mods/fungal-twitch/files/utils.lua")
 
-local LOG_SHIFT_RESULT_IN_GAME = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_GAME")
-local LOG_SHIFT_RESULT_IN_TWITCH = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_TWITCH")
+local Anarchy = dofile_once('mods/fungal-twitch/files/anarchy.lua')
+local Democracy = dofile_once('mods/fungal-twitch/files/democracy.lua')
+local TI = dofile_once('mods/fungal-twitch/files/ti.lua')
+
 local START_WITH_TELEPORT = ModSettingGet("fungal-twitch.START_WITH_TELEPORT")
 local START_WITH_PEACE = ModSettingGet("fungal-twitch.START_WITH_PEACE")
 local START_WITH_BREATHLESS = ModSettingGet("fungal-twitch.START_WITH_BREATHLESS")
 local VOTE_MODE = ModSettingGet("fungal-twitch.VOTE_MODE")
-local UNBALANCED_MODE = ModSettingGet("fungal-twitch.UNBALANCED_MODE")
-local ANARCHY_COOLDOWN = ModSettingGet("fungal-twitch.ANARCHY_COOLDOWN")
-local DEMOCRACY_INTERVAL = ModSettingGet("fungal-twitch.DEMOCRACY_INTERVAL")
-
-local banned_materials = {}
-
-local fromUser = ""
-local toUser = ""
-local anarchy_cooldowns = {}
-local anarchy_users_from = {}
-local anarchy_users_to = {}
-
-local last_democracy_tick = 0
-local democracy_votes_from = {}
-local democracy_votes_to = {}
 
 local gui
 local gui_id
 
+local mode
+
 function OnModPostInit()
 	gui = GuiCreate()
 	gui_id = 3355
+
+	if (VOTE_MODE == "democracy") then
+		mode = Democracy
+	elseif (VOTE_MODE == "anarchy") then
+		mode = Anarchy
+	elseif (VOTE_MODE == "ti") then
+		mode = TI
+	end
 end
 
 function OnWorldPreUpdate()
 	poll()
-	if (VOTE_MODE == "democracy") then
-		democracyTick()
-	end
+	mode:tick()
+	drawUI()
 end
 
 function OnPlayerSpawned(player_entity)
-	GamePrintImportant("Connection status: " .. socket:status())
+	mode:init()
+	GamePrint("[Fungal Twitch] Connection status: " .. getSocket():status())
 
 	if (START_WITH_TELEPORT) then
 		local x, y = EntityGetTransform(player_entity)
@@ -63,7 +59,7 @@ function givePerk(player_entity, perk_id)
 end
 
 function poll()
-	local success, data = socket:poll()
+	local success, data = getSocket():poll()
 	if (success and data and string.len(data) > 0) then
 		local command = {}
 		for key in string.gmatch(data, '[^%s]+') do
@@ -80,119 +76,45 @@ function poll()
 
 		if (method == "init_banned_materials") then
 			for key in string.gmatch(material, '[^,]+') do
-				table.insert(banned_materials, key)
+				banMaterial(key)
 			end
 			return
 		end
 
-		if (isIllegalMaterial(material)) then
-			socket:send(user .. ", illegal material: " .. material)
+		if (mode:isIllegalMaterial(material)) then
+			getSocket():send(user .. ", illegal material: " .. material)
 			return
 		end
-		if (isBannedMaterial(material)) then
-			socket:send(user .. ", banned material: " .. material)
+		if (mode:isBannedMaterial(material)) then
+			getSocket():send(user .. ", banned material: " .. material)
 			return
 		end
 
 		if (method == "ban") then
-			table.insert(banned_materials, material)
-			socket:send("ban " .. material)
+			banMaterial(material)
+			getSocket():send("ban " .. material)
 			return
 		end
 		if (method == "unban") then
-			for index,value in ipairs(banned_materials) do
-					if (value == material) then
-						table.remove(banned_materials, index)
-						break
-					end
-			end
-			socket:send("unban " .. material)
+			unbanMaterial(material)
+			getSocket():send("unban " .. material)
 			return
 		end
 
-		if (VOTE_MODE == "anarchy") then
-			doAnarchy(user, method, material)
-		end
-		if (VOTE_MODE == "democracy") then
-			doDemocracy(user, method, material)
-		end
+		mode:handleInput(user, method, material)
 	end
-end
-
-function isIllegalMaterial(material_name)
-	local type = CellFactory_GetType(material_name)
-	if (type == -1) then
-		return true
-	end
-	for _,k in ipairs(CellFactory_GetTags(type)) do
-		if (k == "[box2d]") then
-			return true
-		end
-	end
-	return false
-end
-
-function isBannedMaterial(material_name)
-	for _,k in ipairs(banned_materials) do
-		if (k == material_name) then
-			return true
-		end
-	end
-	return false
-end
-
-function democracyTick()
-	local time = GameGetRealWorldTimeSinceStarted()
-	if (tableSize(democracy_votes_from) > 0 and
-			tableSize(democracy_votes_to) > 0 and
-			(last_democracy_tick + DEMOCRACY_INTERVAL) < time) then
-
-		local from_table = namesToVotes(democracy_votes_from)
-		local to_table = namesToVotes(democracy_votes_to)
-
-		doShift(from_table[1].mat, to_table[1].mat)
-
-		last_democracy_tick = time
-		democracy_votes_from = {}
-		democracy_votes_to = {}
-	end
-	drawUI()
-end
-
-function tableSize(tab)
-	local n = 0
-	for key in pairs(tab) do
-		n = n + 1
-	end
-	return n
-end
-
-function namesToVotes(originalTable)
-	local new_table = {}
-	for k, v in pairs(originalTable) do
-		new_table[v] = (new_table[v] or 0) + 1
-	end
-
-	local items = {}
-	for k,v in pairs(new_table) do
-		local obj = {}
-		obj.mat = k
-		obj.amount = v
-		table.insert(items, obj)
-	end
-
-	table.sort(items, function(a, b)
-		return a.amount > b.amount
-	end)
-
-	return items
 end
 
 function drawUI()
+	if (mode:hasUI() == false) then
+		return
+	end
+
 	local player = EntityGetWithTag("player_unit")[1]
 	if (player == nil or EntityGetIsAlive(player) == false) then
 		return
 	end
+	SetRandomSeed(EntityGetTransform(player))
 
 	gui_id = 3355
 	GuiStartFrame(gui)
@@ -207,93 +129,27 @@ function drawUI()
 		end
 	end
 
-	local from_table = namesToVotes(democracy_votes_from)
-	local to_table = namesToVotes(democracy_votes_to)
+	local from_table = mode:getOptionsFrom()
+	local to_table = mode:getOptionsTo()
+	local cooldown = mode:getCooldown()
 
-	local time = last_democracy_tick + DEMOCRACY_INTERVAL - GameGetRealWorldTimeSinceStarted()
-	GuiText(gui, 10, 290, time > 0 and (string.format("%.0f", time) .. " seconds left") or "Waiting for enough materials to shift")
+	GuiText(gui, 10, 290, cooldown > 0 and (string.format("%.0f", cooldown) .. " seconds left") or "Waiting for enough materials to shift")
 	GuiText(gui, 10, 300, "Material FROM")
 	for i,obj in ipairs(from_table) do
 		if (i > 5) then
 			break
 		end
-		GuiText(gui, 10, 300 + i*10, obj.amount .. ") " .. obj.mat .. " (" .. getReadableName(obj.mat) .. ")")
+		GuiText(gui, 10, 300 + i*10, obj.text)
 	end
 
-	GuiText(gui, 300, 300, "Material TO")
+	local tableWidth = mode:getTableWidth() + 10
+	GuiText(gui, tableWidth, 300, "Material TO")
 	for i,obj in ipairs(to_table) do
 		if (i > 5) then
 			break
 		end
-		GuiText(gui, 300, 300 + i*10, obj.amount .. ") " .. obj.mat .. " (" .. getReadableName(obj.mat) .. ")")
+		GuiText(gui, tableWidth, 300 + i*10, obj.text)
 	end
 
 	GuiIdPop(gui)
-end
-
-function doShift(from, to)
-	if (from ~= nil and from ~= "" and to ~= nil and to ~= "") then
-		local mat1 = CellFactory_GetType(from)
-		local mat2 = CellFactory_GetType(to)
-		if (mat1 > -1 and mat2 > -1) then
-			local mat1String = getReadableName(from)
-			local mat2String = getReadableName(to)
-			ConvertMaterialEverywhere(mat1, mat2)
-			if (LOG_SHIFT_RESULT_IN_GAME) then
-				GamePrintImportant("Shifting from " .. mat1String .. " to " .. mat2String)
-			end
-			if (LOG_SHIFT_RESULT_IN_TWITCH) then
-				socket:send((#fromUser > 0 and "(" .. fromUser .. ") " or "") .. mat1String .. " -> " .. mat2String .. (#toUser > 0 and " (" .. toUser .. ")" or ""))
-			end
-			return true
-		end
-	end
-	return false
-end
-
-function getReadableName(material)
-	return GameTextGetTranslatedOrNot(CellFactory_GetUIName(CellFactory_GetType(material)))
-end
-
-function doAnarchy(user, method, material)
-	local time = GameGetRealWorldTimeSinceStarted()
-	if (anarchy_cooldowns[user] ~= nil) then
-		local cooldown = anarchy_cooldowns[user] + ANARCHY_COOLDOWN - time
-		if (cooldown > 0) then
-			socket:send(user .. ", your cooldown is " .. string.format("%.0f", cooldown)  .. " seconds")
-			return
-		end
-	end
-
-	if (method == "from") then
-		fromUser = user
-		anarchy_users_from[user] = material
-	end
-	if (method == "to") then
-		toUser = user
-		anarchy_users_to[user] = material
-	end
-
-	local success = false
-	if (UNBALANCED_MODE) then
-		success = doShift(anarchy_users_from[user], anarchy_users_to[user])
-	else
-		success = doShift(anarchy_users_from[fromUser], anarchy_users_to[toUser])
-	end
-
-	if (success) then
-		anarchy_users_from[fromUser] = nil
-		anarchy_users_to[toUser] = nil
-		anarchy_cooldowns[fromUser] = time
-		anarchy_cooldowns[toUser] = time
-	end
-end
-
-function doDemocracy(user, method, material)
-	if (method == "from") then
-		democracy_votes_from[user] = material
-	end
-	if (method == "to") then
-		democracy_votes_to[user] = material
-	end
 end
