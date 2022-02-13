@@ -146,7 +146,7 @@ return
         id = "TI_INTERVAL",
         ui_name = "TI interval",
         ui_description = "At what interval will shifts happen",
-				value_default = 30,
+				value_default = 45,
 				value_min = 10,
 				value_max = 150,
 				value_display_multiplier = 1,
