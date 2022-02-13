@@ -81,12 +81,8 @@ function poll()
 			return
 		end
 
-		if (mode:isIllegalMaterial(material)) then
+		if (VOTE_MODE ~= "ti" and mode:isIllegalMaterial(material)) then
 			getSocket():send(user .. ", illegal material: " .. material)
-			return
-		end
-		if (mode:isBannedMaterial(material)) then
-			getSocket():send(user .. ", banned material: " .. material)
 			return
 		end
 
@@ -98,6 +94,11 @@ function poll()
 		if (method == "unban") then
 			unbanMaterial(material)
 			getSocket():send("unban " .. material)
+			return
+		end
+
+		if (mode:isBannedMaterial(material)) then
+			getSocket():send(user .. ", banned material: " .. material)
 			return
 		end
 

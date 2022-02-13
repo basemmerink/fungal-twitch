@@ -137,7 +137,7 @@ function connectToTwitch() {
         if (!rewardId) {
             const [first, ...args] = message.split(' ');
             const command = first.toLowerCase();
-            if (/[1-4a-d]{1,2}/.test(command)) {
+            if (command.length < 3 && /[1-4a-d]{1,2}/.test(command)) {
                 sendWebsocketMessage(username + ' ti ' + command);
             }
             handleCommand(command, args, username);
