@@ -45,15 +45,21 @@ function Anarchy:handleInput(user, method, material)
   local success = false
   if (UNBALANCED_MODE) then
     success = doShift(anarchy_users_from[user], anarchy_users_to[user])
+    if (success) then
+      anarchy_users_from[user] = nil
+      anarchy_users_to[user] = nil
+      anarchy_cooldowns[user] = time
+    end
   else
     success = doShift(anarchy_users_from[fromUser], anarchy_users_to[toUser])
-  end
-
-  if (success) then
-    anarchy_users_from[fromUser] = nil
-    anarchy_users_to[toUser] = nil
-    anarchy_cooldowns[fromUser] = time
-    anarchy_cooldowns[toUser] = time
+    if (success) then
+      anarchy_users_from[fromUser] = nil
+      anarchy_users_to[toUser] = nil
+      anarchy_cooldowns[fromUser] = time
+      anarchy_cooldowns[toUser] = time
+      fromUser = ""
+      toUser = ""
+    end
   end
 end
 
