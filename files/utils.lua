@@ -1,14 +1,7 @@
-local pollnet = dofile_once('mods/fungal-twitch/lib/pollnet.lua')
-local socket = pollnet.open_ws('ws://localhost:9444')
-
 local LOG_SHIFT_RESULT_IN_GAME = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_GAME")
-local LOG_SHIFT_RESULT_IN_TWITCH = ModSettingGet("fungal-twitch.LOG_SHIFT_RESULT_IN_TWITCH")
 
 local banned_materials = {}
-
-function getSocket()
-  return socket
-end
+local shifts = {}
 
 function doShift(from, to)
 	if (from ~= nil and from ~= "" and to ~= nil and to ~= "") then
@@ -20,9 +13,6 @@ function doShift(from, to)
 			ConvertMaterialEverywhere(mat1, mat2)
 			if (LOG_SHIFT_RESULT_IN_GAME) then
 				GamePrintImportant("Shifting from " .. mat1String .. " to " .. mat2String)
-			end
-			if (LOG_SHIFT_RESULT_IN_TWITCH) then
-				socket:send(mat1String .. " -> " .. mat2String)
 			end
 			return true
 		end
@@ -42,19 +32,6 @@ function tableSize(tab)
 	return n
 end
 
-function banMaterial(material)
-  table.insert(banned_materials, material)
-end
-
-function unbanMaterial(material)
-  for index,value in ipairs(banned_materials) do
-      if (value == material) then
-        table.remove(banned_materials, index)
-        break
-      end
-  end
-end
-
 function isIllegalMaterial(material_name)
 	local type = CellFactory_GetType(material_name)
 	if (type == -1) then
@@ -69,10 +46,8 @@ function isIllegalMaterial(material_name)
 end
 
 function isBannedMaterial(material_name)
-	for _,k in ipairs(banned_materials) do
-		if (k == material_name) then
-			return true
-		end
-	end
-	return false
+  if (banned_materials[material_name] == nil) then
+    banned_materials[material_name] = ModSettingGet("fungal-twitch." .. material_name)
+  end
+	return not banned_materials[material_name]
 end

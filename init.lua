@@ -1,48 +1,126 @@
-dofile_once("data/scripts/perks/perk.lua")
-dofile_once("mods/fungal-twitch/files/utils.lua")
+ModLuaFileAppend("data/scripts/streaming_integration/event_utilities.lua", "mods/fungal-twitch/files/event_utilities.lua")
 
-local Anarchy = dofile_once('mods/fungal-twitch/files/anarchy.lua')
-local Democracy = dofile_once('mods/fungal-twitch/files/democracy.lua')
-local TI = dofile_once('mods/fungal-twitch/files/ti.lua')
+dofile("data/scripts/lib/utilities.lua")
+dofile_once("data/scripts/perks/perk.lua")
+
+local gui = dofile_once('mods/fungal-twitch/files/gui.lua')
+local vote_mode = dofile_once('mods/fungal-twitch/files/vote_mode.lua')
 
 local START_WITH_TELEPORT = ModSettingGet("fungal-twitch.START_WITH_TELEPORT")
+local START_WITH_FIRESTONE = ModSettingGet("fungal-twitch.START_WITH_FIRESTONE")
 local START_WITH_PEACE = ModSettingGet("fungal-twitch.START_WITH_PEACE")
 local START_WITH_BREATHLESS = ModSettingGet("fungal-twitch.START_WITH_BREATHLESS")
-local VOTE_MODE = ModSettingGet("fungal-twitch.VOTE_MODE")
 
-local gui
-local gui_id
+local REWARD_FROM_ID = ModSettingGet("fungal-twitch.REWARD_FROM_ID") or ""
+local REWARD_TO_ID = ModSettingGet("fungal-twitch.REWARD_TO_ID") or ""
 
-local mode
+local lastMessage = nil
 
 function OnModPostInit()
-	gui = GuiCreate()
-	gui_id = 3355
-
-	if (VOTE_MODE == "democracy") then
-		mode = Democracy
-	elseif (VOTE_MODE == "anarchy") then
-		mode = Anarchy
-	elseif (VOTE_MODE == "ti") then
-		mode = TI
-	end
+	vote_mode:init()
+	gui:init()
 end
 
 function OnWorldPreUpdate()
-	poll()
-	mode:tick()
-	drawUI()
+	if (GlobalsGetValue("fungal-twitch.hasNewMessage") == "true") then
+		vote_mode:messageReceived(
+			GlobalsGetValue("fungal-twitch.lastUser"),
+			GlobalsGetValue("fungal-twitch.lastMessage"),
+			GlobalsGetValue("fungal-twitch.lastRewardId"))
+		GlobalsSetValue("fungal-twitch.hasNewMessage", "false")
+	end
+
+	if (StreamingGetIsConnected() and REWARD_FROM_ID ~= "" and REWARD_TO_ID ~= "") then
+		vote_mode:tick()
+		vote_mode:drawUI()
+	else
+		drawUI()
+	end
+end
+
+function drawUI()
+	local player = EntityGetWithTag("player_unit")[1]
+	if (player == nil or EntityGetIsAlive(player) == false) then
+		return
+	end
+
+	gui:start()
+	local guiObj = gui:getObject()
+	local guiId = gui:getId()
+
+	if (player) then
+		local platform_shooter_player = EntityGetFirstComponentIncludingDisabled(player, "PlatformShooterPlayerComponent")
+		if (platform_shooter_player) then
+			local is_gamepad = ComponentGetValue2(platform_shooter_player, "mHasGamepadControlsPrev")
+			if (is_gamepad) then
+				GuiOptionsAdd(guiObj, GUI_OPTION.NonInteractive)
+				GuiOptionsAdd(guiObj, GUI_OPTION.AlwaysClickable)
+			end
+		end
+	end
+
+	local screenWidth, screenHeight = GuiGetScreenDimensions(guiObj)
+	local centerX, centerY = screenWidth / 2, screenHeight / 2
+	local width, height = 300, 100
+	local method = REWARD_FROM_ID == "" and "FROM" or "TO"
+
+	--GuiImageNinePiece(guiObj, guiId, centerX - width / 2, centerY - height / 2, width, height, 1)
+	GuiOptionsAdd(guiObj, GUI_OPTION.Align_HorizontalCenter)
+	GuiBeginAutoBox(guiObj)
+
+	GuiZSet(guiObj, 1)
+	if (not StreamingGetIsConnected()) then
+		GuiText(guiObj, centerX, centerY, "Please go to Options > Streaming and connect to twitch")
+	else
+		if (lastMessage == nil) then
+			lastMessage = vote_mode:getFirstMessage()
+		end
+		if (lastMessage == nil) then
+			GuiText(guiObj, centerX, centerY - 20, "Please navigate to your twitch dashboard and create a channel point redemption for the " .. method .. " material")
+			GuiText(guiObj, centerX, centerY - 10, "! Make sure that viewers are required to enter a message !")
+			GuiText(guiObj, centerX, centerY, "It is adviced to make it really cheap and put no cooldown")
+			GuiText(guiObj, centerX, centerY + 20, "After you have done this, redeem the " .. method .. " redemption")
+		elseif (lastMessage.rewardId ~= "") then
+			GuiText(guiObj, centerX, centerY - 40, lastMessage.user .. ": " .. lastMessage.message)
+			GuiText(guiObj, centerX, centerY - 20, "Did " .. lastMessage.user .. " just redeem the " .. method .. "?")
+			if (GuiButton(guiObj, guiId + 1, centerX + 30, centerY + 35, "[Yes]")) then
+				ModSettingSet("fungal-twitch.REWARD_" .. method .. "_ID", lastMessage.rewardId)
+				if (method == "FROM") then
+					REWARD_FROM_ID = lastMessage.rewardId
+				else
+					REWARD_TO_ID = lastMessage.rewardId
+				end
+				vote_mode:initMode()
+				lastMessage = nil
+			end
+			if (GuiButton(guiObj, guiId + 2, centerX - 30, centerY + 35, "[No]")) then
+				lastMessage = nil
+			end
+		else
+			lastMessage = nil
+		end
+
+	end
+
+	GuiZSetForNextWidget(guiObj, 2)
+	GuiEndAutoBoxNinePiece(guiObj)
+
+	gui:finish()
 end
 
 function OnPlayerSpawned(player_entity)
-	mode:init()
-	GamePrint("[Fungal Twitch] Connection status: " .. getSocket():status())
-
-	if (START_WITH_TELEPORT) then
-		local x, y = EntityGetTransform(player_entity)
-		GamePickUpInventoryItem(player_entity, EntityLoad('data/entities/misc/custom_cards/teleport_projectile_short.xml', x, y), true)
+	vote_mode:initMode()
+	StreamingSetVotingEnabled(false)
+	if (StreamingGetIsConnected()) then
+		GamePrint("Connected to Twitch")
 	end
 
+	if (START_WITH_TELEPORT) then
+		pickupItem(player_entity, "data/entities/misc/custom_cards/teleport_projectile_short.xml")
+	end
+	if (START_WITH_FIRESTONE) then
+		pickupItem(player_entity, "data/entities/items/pickup/brimstone.xml")
+	end
 	if (START_WITH_PEACE) then
 		givePerk(player_entity, "PEACE_WITH_GODS")
 	end
@@ -58,99 +136,7 @@ function givePerk(player_entity, perk_id)
 	perk_pickup(perk_entity, player_entity, nil, false, false)
 end
 
-function poll()
-	local success, data = getSocket():poll()
-	if (success and data and string.len(data) > 0) then
-		local command = {}
-		for key in string.gmatch(data, '[^%s]+') do
-			table.insert(command, key)
-		end
-
-		if (#command < 3) then
-			return
-		end
-
-		local user = command[1]
-		local method = command[2]
-		local material = command[3]
-
-		if (method == "init_banned_materials") then
-			for key in string.gmatch(material, '[^,]+') do
-				banMaterial(key)
-			end
-			return
-		end
-
-		if (VOTE_MODE ~= "ti" and mode:isIllegalMaterial(material)) then
-			getSocket():send(user .. ", illegal material: " .. material)
-			return
-		end
-
-		if (method == "ban") then
-			banMaterial(material)
-			getSocket():send("ban " .. material)
-			return
-		end
-		if (method == "unban") then
-			unbanMaterial(material)
-			getSocket():send("unban " .. material)
-			return
-		end
-
-		if (mode:isBannedMaterial(material)) then
-			getSocket():send(user .. ", banned material: " .. material)
-			return
-		end
-
-		mode:handleInput(user, method, material)
-	end
-end
-
-function drawUI()
-	if (mode:hasUI() == false) then
-		return
-	end
-
-	local player = EntityGetWithTag("player_unit")[1]
-	if (player == nil or EntityGetIsAlive(player) == false) then
-		return
-	end
-	SetRandomSeed(EntityGetTransform(player))
-
-	gui_id = 3355
-	GuiStartFrame(gui)
-	GuiIdPushString(gui, "fungal-twitch")
-
-	local platform_shooter_player = EntityGetFirstComponentIncludingDisabled(player, "PlatformShooterPlayerComponent")
-	if (platform_shooter_player) then
-		local is_gamepad = ComponentGetValue2(platform_shooter_player, "mHasGamepadControlsPrev")
-		if (is_gamepad) then
-			GuiOptionsAdd(gui, GUI_OPTION.NonInteractive)
-			GuiOptionsAdd(gui, GUI_OPTION.AlwaysClickable)
-		end
-	end
-
-	local from_table = mode:getOptionsFrom()
-	local to_table = mode:getOptionsTo()
-	local cooldown = mode:getCooldown()
-
-	GuiText(gui, 10, 290, cooldown > 0 and (string.format("%.0f", cooldown) .. " seconds left") or "Waiting for enough materials to shift")
-	GuiText(gui, 10, 300, "Material FROM")
-	for i,obj in ipairs(from_table) do
-		if (i > 5) then
-			break
-		end
-		GuiText(gui, 10, 300 + i*10, obj.text)
-	end
-
-	local tableWidth = mode:getTableWidth() + 10
-	GuiText(gui, tableWidth, 300, "Material TO")
-	for i,obj in ipairs(to_table) do
-		if (i > 5) then
-			break
-		end
-		GuiText(gui, tableWidth, 300 + i*10, obj.text)
-	end
-
-	GuiIdPop(gui)
+function pickupItem(player_entity, item)
+	local x, y = EntityGetTransform(player_entity)
+	GamePickUpInventoryItem(player_entity, EntityLoad(item, x, y), true)
 end

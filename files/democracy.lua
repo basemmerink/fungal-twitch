@@ -2,39 +2,64 @@ dofile_once("mods/fungal-twitch/files/utils.lua")
 
 local DEMOCRACY_INTERVAL = ModSettingGet("fungal-twitch.DEMOCRACY_INTERVAL")
 
-local last_tick
-local votes_from = {}
-local votes_to = {}
+local REWARD_FROM_ID = ModSettingGet("fungal-twitch.REWARD_FROM_ID")
+local REWARD_TO_ID = ModSettingGet("fungal-twitch.REWARD_TO_ID")
 
-local Democracy = {}
+local Democracy = {
+	last_tick = nil,
+	votes_from = {},
+	votes_to = {}
+}
 
 function Democracy:init()
-	last_tick = GameGetRealWorldTimeSinceStarted()
+	self.last_tick = GameGetRealWorldTimeSinceStarted()
+	REWARD_TO_ID = ModSettingGet("fungal-twitch.REWARD_TO_ID")
+	REWARD_FROM_ID = ModSettingGet("fungal-twitch.REWARD_FROM_ID")
 end
 
 function Democracy:tick()
-	if (tableSize(votes_from) > 0 and
-			tableSize(votes_to) > 0 and
+	if (tableSize(self.votes_from) > 0 and
+			tableSize(self.votes_to) > 0 and
 			self:getCooldown() <= 0) then
-    last_tick = GameGetRealWorldTimeSinceStarted()
+    self.last_tick = GameGetRealWorldTimeSinceStarted()
 
-		local from_table = namesToVotes(votes_from)
-		local to_table = namesToVotes(votes_to)
+		local from_table = namesToVotes(self.votes_from)
+		local to_table = namesToVotes(self.votes_to)
 
-		doShift(from_table[1].material, to_table[1].material)
+		local same_from = {}
+		for i=1, #from_table do
+			if (from_table[i].amount == from_table[1].amount) then
+				table.insert(same_from, from_table[i])
+			end
+		end
 
-		votes_from = {}
-		votes_to = {}
+		local same_to = {}
+		for i=1, #to_table do
+			if (to_table[i].amount == to_table[1].amount) then
+				table.insert(same_to, to_table[i])
+			end
+		end
+
+		SetRandomSeed(GameGetFrameNum(), -GameGetFrameNum())
+		local mat1 = same_from[Random(1, #same_from)].material
+		local mat2 = same_to[Random(1, #same_to)].material
+
+		doShift(mat1, mat2)
+
+		self.votes_from = {}
+		self.votes_to = {}
 	end
-	drawUI()
 end
 
-function Democracy:handleInput(user, method, material)
-  if (method == "from") then
-    votes_from[user] = material
-  end
-  if (method == "to") then
-    votes_to[user] = material
+function Democracy:handleInput(user, message, rewardId)
+	if (rewardId == nil) then
+    return
+  elseif (rewardId == REWARD_FROM_ID) then
+    self.votes_from[user] = message
+  elseif (rewardId == REWARD_TO_ID) then
+    self.votes_to[user] = message
+  else
+    return
   end
 end
 
@@ -42,28 +67,24 @@ function Democracy:hasUI()
   return true
 end
 
-function Democracy:getTableWidth()
-	return 290
-end
-
 function Democracy:getOptionsFrom()
-  return namesToVotes(votes_from)
+  return namesToVotes(self.votes_from)
 end
 
 function Democracy:getOptionsTo()
-  return namesToVotes(votes_to)
+  return namesToVotes(self.votes_to)
+end
+
+function Democracy:isIllegal(material)
+	return isIllegalMaterial(material) or isBannedMaterial(material)
 end
 
 function Democracy:getCooldown()
-  return last_tick + DEMOCRACY_INTERVAL - GameGetRealWorldTimeSinceStarted()
+  return self.last_tick + DEMOCRACY_INTERVAL - GameGetRealWorldTimeSinceStarted()
 end
 
-function Democracy:isIllegalMaterial(material)
-	return isIllegalMaterial(material)
-end
-
-function Democracy:isBannedMaterial(material)
-	return isBannedMaterial(material)
+function Democracy:getUsersOnCooldown()
+	return {}
 end
 
 function namesToVotes(originalTable)
@@ -77,7 +98,7 @@ function namesToVotes(originalTable)
 		local obj = {}
 		obj.material = k
     obj.amount = v
-    obj.text = v .. ") " .. k .. " (" .. getReadableName(k) .. ")"
+    obj.text = k .. " (" .. getReadableName(k) .. ") [" .. v .. "]"
 		table.insert(items, obj)
 	end
 
