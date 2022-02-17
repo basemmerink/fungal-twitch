@@ -9,27 +9,19 @@ Fungal Twitch is a Noita mod that lets Twitch chat pick the materials for a fung
 
 ### Download
 
-- Download the files from github and extract to your Noita mod folder. **Rename the folder from fungal-twitch-main to fungal-twitch**
-- Download the LTS version of [Nodejs](https://nodejs.org/en/download/) if you don't have it already
+- Subscribe to it in the [steam workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=2756356482)
 
 ### Twitch
 - Make 2 channel point redemptions, a template (img) can be found at the bottom of this page
   - One redemption is needed for the *from* material, and one redemption is needed for the *to* material
   - Make sure that the user must enter a message
   - Set it to not have a cooldown (you can change the cooldown settings in game)
-
-### Run
-- Run the batch file *RUN_THIS_THE_FIRST_TIME.bat* - This will setup the NodeJS environment, you only need to do this once
-- Run the batch file *server.bat* - This will start the server
-  - If this file closes immediately you either forgot to rename the folder from *fungal-twitch-main* to *fungal-twitch* or an unknown error has occurred.
-  - The server will prompt you with several questions
-  - If you ever make a mistake in the installation process, delete *fungal-twitch/application_data.json* and restart the server
+- Create a custom command !materials which leads the viewer to https://pastebin.com/eAKLkG8u
 
 ## Starting the mod
 
-- Run *server.bat* - You need to run this each time when you want to play this mod
-- Start a new run in Noita with the Fungal Twitch mod enabled (make sure to grant it extra privileges, this is needed for websockets to work)
-- If a message appears in the bottom left corner saying "Connection status: Open" then you know it works (the server will print a message too)
+- Start a new run in Noita with the Fungal Twitch mod enabled
+- The first time you run it you need to redeem the channel point redemptions on Twitch so the mod saves them
 
 ## How it works
 
@@ -54,17 +46,12 @@ A random list of 4 *from* and 4 *to* materials is chosen.
 People can vote by saying 1-4 or a-d or even 1c, or 3a for example.  
 After a set amount of time, the *from* and *to* with the highest amount of votes will be shifted
 
-## Commands
-
-- *!materials* to get a list of all materials - Everyone can use this command
-- *!banmaterial material_name* to ban a material - Use this when materials create a large amount of lag - Only the streamer can use this command
-- *!unbanmaterial material_name* to unban a material - Only the streamer can use this command
-
 ## Mod settings (ingame)
 
+- *Reset twitch redeem ID's* - Toggle this if you made an error during the setup phase
 - *Log a shift result ingame* - A message with the materials from the shift will be sent to the player 
-- *Log a shift result in Twitch* - A message with the materials from the shift will be sent to Twitch chat 
 - *Start with a small teleport bolt* - A small teleport bolt will be added to the players inventory on new game
+- *Start with a firestone* - A Kiuaskivi will be added to the players inventory on new game
 - *Start with Peace with the gods* - The player will start with the perk *Peace with the gods*
 - *Start with Breathless* - The player will start with the perk *Breathless*
 - *Vote mode* - Toggle between Anarchy mode, Democracy mode and TI (which acts like the classic twitch integration)
@@ -72,6 +59,7 @@ After a set amount of time, the *from* and *to* with the highest amount of votes
 - *Anarchy cooldown* - The cooldown per user in seconds
 - *Democracy interval* - The interval at which votes will be collected and a shift happens
 - *TI interval* - The interval at which votes will be collected and a shift happens
+- *Valid materials* - Toggle to ban materials
 
 ## Credits
 
