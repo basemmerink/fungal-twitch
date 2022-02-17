@@ -29,7 +29,8 @@ function vote_mode:tick()
 	local message = self:getFirstMessage()
 	if (message ~= nil) then
 		local material = message.message
-		if (self.mode:isIllegal(material)) then
+		local hasRewardId = message.rewardId ~= nil and message.rewardId ~= ""
+		if (hasRewardId and self.mode:isIllegal(material)) then
 			table.insert(self.illegal_materials, material)
 			if (#self.illegal_materials > 5) then
 				table.remove(self.illegal_materials, 1)
