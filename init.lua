@@ -11,6 +11,7 @@ local START_WITH_FIRESTONE = ModSettingGet("fungal-twitch.START_WITH_FIRESTONE")
 local START_WITH_PEACE = ModSettingGet("fungal-twitch.START_WITH_PEACE")
 local START_WITH_BREATHLESS = ModSettingGet("fungal-twitch.START_WITH_BREATHLESS")
 
+local VOTE_MODE = ModSettingGet("fungal-twitch.VOTE_MODE") or ""
 local REWARD_FROM_ID = ModSettingGet("fungal-twitch.REWARD_FROM_ID") or ""
 local REWARD_TO_ID = ModSettingGet("fungal-twitch.REWARD_TO_ID") or ""
 
@@ -30,7 +31,7 @@ function OnWorldPreUpdate()
 		GlobalsSetValue("fungal-twitch.hasNewMessage", "false")
 	end
 
-	if (StreamingGetIsConnected() and REWARD_FROM_ID ~= "" and REWARD_TO_ID ~= "") then
+	if (StreamingGetIsConnected() and (VOTE_MODE == "ti" or (REWARD_FROM_ID ~= "" and REWARD_TO_ID ~= ""))) then
 		vote_mode:tick()
 		vote_mode:drawUI()
 	else
